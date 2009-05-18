@@ -149,3 +149,28 @@ _UNSUPPORTED ATTRIBUTES: `threshold`_
 || 0 || Seek ||
 || 1 || Capture ||
 || 2 || Flee ||
+
+=Sample XML File=
+{{{
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?> 
+<simulation stepTime="0.1" pitchSize="60.0" numSteps="250" name="2 Team (Cops & Robbers)" maxSteps="1000">
+ <team topSpeed="6.0" sensorRange="20.0" name="Cops" leadFactor="0.5" commRange="50.0" color="0000ff" behaviorCode="3" size="5">
+  <capture removalCode="0" type="0" threshold="5.0" target="Robbers" cooperationOn="false" /> 
+  <victory eventGreaterCode="0" eventLessCode="1" gameEnding="false" type="5" threshold="2.0" target="Robbers" cooperationOn="false" /> 
+  <metric type="2" threshold="0.0" target="Robbers" cooperationOn="false" /> 
+  <agent y="17.41848056320532" x="7.012919933133404" topSpeed="6.0" sensorRange="20.0" name="C1" leadFactor="0.5" commRange="50.0" color="0000ff" behaviorCode="3" /> 
+  <agent y="-41.624558669561694" x="-55.800242065001655" topSpeed="6.0" sensorRange="20.0" name="C2" leadFactor="0.5" commRange="50.0" color="0000ff" behaviorCode="3" /> 
+  <agent y="-29.92705306911088" x="59.2842175539607" topSpeed="6.0" sensorRange="20.0" name="C3" leadFactor="0.5" commRange="50.0" color="0000ff" behaviorCode="3" /> 
+  <agent y="-42.594803320797546" x="-50.59954274192023" topSpeed="6.0" sensorRange="20.0" name="C4" leadFactor="0.5" commRange="50.0" color="0000ff" behaviorCode="3" /> 
+  <agent y="35.42678444582447" x="-54.17007051943155" topSpeed="6.0" sensorRange="20.0" name="C5" leadFactor="0.5" commRange="50.0" color="0000ff" behaviorCode="3" /> 
+  <tasking weight="1.0" threshhold="1.0" taskType="1" target="Robbers" algorithm="7" /> 
+ </team>
+ <team topSpeed="5.0" sensorRange="20.0" name="Robbers" leadFactor="0.5" commRange="50.0" color="ffc800" behaviorCode="1" size="4">
+  <agent y="-6.344147075652636" x="-21.935229115632225" topSpeed="5.0" sensorRange="20.0" name="R1" leadFactor="0.5" commRange="50.0" color="ffc800" behaviorCode="1" /> 
+  <agent y="-5.111052925336395" x="-2.2607997892695337" topSpeed="5.0" sensorRange="20.0" name="R2" leadFactor="0.5" commRange="50.0" color="ffc800" behaviorCode="1" /> 
+  <agent y="18.517656529054676" x="-27.51103319412136" topSpeed="5.0" sensorRange="20.0" name="R3" leadFactor="0.5" commRange="50.0" color="ffc800" behaviorCode="1" /> 
+  <agent y="49.23535607937602" x="-6.718613918274649" topSpeed="5.0" sensorRange="20.0" name="R4" leadFactor="0.5" commRange="50.0" color="ffc800" behaviorCode="1" /> 
+  <tasking weight="1.0" threshhold="1.0" taskType="2" target="Cops" algorithm="6" /> 
+ </team>
+</simulation>
+}}}
