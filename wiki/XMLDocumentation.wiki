@@ -90,15 +90,16 @@ Defines a metric used for simulation statistics.
 || 2 || Average distance to targets ||
 || 3 || Opposing agent which is closest to capture ||
 || 4 || Number of active agents on own team ||
-|| 5 || Number on team that are "safe" ||
-|| 6 || Number of active opponents ||
-|| 7 || Number of opponents that have been captured ||
-|| 8 || Advantage in numbers over the opponent ||
-|| 9 || Number of potential captures that have not been made ||
-|| 10 || Number of opponents that have not been captured ||
-|| 11 || Total time of the simulation ||
-|| 12 || Time elapsed since the last capture ||
-|| 13 || Percentage of opponents that have been captured ||
+|| 5 || Number of active opponents ||
+|| 6 || Advantage in numbers over the opponent ||
+|| 7 || Number on team that are "safe" ||
+|| 8 || Number of opponents that are "safe" ||
+|| 9 || Number of opponents that have been captured ||
+|| 10 || Percentage of opponents that have been captured ||
+|| 11 || Number of opponents that have not been captured ||
+|| 12 || Number of potential captures that have not been made ||
+|| 13 || Total time of the simulation ||
+|| 14 || Time elapsed since the last capture ||
 
 === Capture ===
 Represents a metric used to define when to remove a player from the game. Has all the properties of a `metric` plus:
@@ -134,7 +135,7 @@ _UNSUPPORTED ATTRIBUTES: `threshold`_
 =====Tasking Algorithm Codes=====
 || *Value* || *Meaning* ||
 || 0 || No tasking done ||
-|| 1 ||_Autonomous;_ assigns closest target ||
+|| 1 || _Autonomous;_ assigns closest target ||
 || 2 || _Autonomous;_ assigns point along line between the two closest targets ||
 || 3 || _Autonomous;_ assigns farthest target ||
 || 4 || _Autonomous;_ assigns average position (center-of-mass) of targets ||
