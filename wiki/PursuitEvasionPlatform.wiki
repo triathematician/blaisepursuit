@@ -31,10 +31,20 @@ Generally speaking, pursuit/evasion algorithms between multiple players contain 
   * Active players _fuse_ their own perceptions with those communicated by others to form a belief about what's really out there, currently by simply adding all agents in `commpov` to those in `pov`.
    * _`Team.fuseAgentPOV()`_
    * _`Agent.fusePOV()`_
- # TASKING / PURSUER-EVADER ASSIGNMENT (PEA)
-  * "Control agent" generates tasks for all teammates
-  * Individual agents generate tasks for all teammates
- # Task Fusion / Path Planning (PP)
-  * Players turn the list of tasks they have into a DIRECTION in which they can travel
-  * Use a *Behavior* to determine how to fuse the tasks together
-  * Move all players
+ # *TASKING / PURSUER-EVADER ASSIGNMENT (PEA)*.
+  * Each team handles the assignment problem by generating _control tasks_ using the "control agent" `taskings` and having each active player also generate _autonomous tasks_. Players have collections of *`Tasking`* objects, each of which wraps up a *`TaskGenerator`* object that is responsible for assigning agents *`Task`*s based on the current field of play. Each *`Task`* contains a `priority` that is later used by the agent to decide the ultimate action.
+   * _`Team.assignTasks(DistanceTable dt)`_
+   * _`Agent.generateTasks(Team team, DistanceTable dt, double priority)`_
+   * _`TaskGenerator.generate(Collection<Agent> team, DistanceTable dt, double priority)`_
+   * _`new Task(TaskGenerator source, V2 target, int type, double priority)`_
+   * _`Agent.assign(Task t)`_
+ # *TASK FUSION / PATH PLANNING (PP)*.
+  * The active players plan their paths based on the assigned tasks. Each *`Task`* leads to a desired direction of travel (a *`V2`*), with the conversion happening within a *`Behavior`* class. So _behaviors_ correspond to leading strategies, search strategies, etc.
+   * _`Team.planPaths(double time, double stepTime)`_
+   * _`Agent.planPath(double time, double stepTime)`_
+   * _`R2 TaskFusion.getVector(Agent agent, Vector<Task> tasks, double time)`_
+   * _`R2 Behavior.direction(Agent self, V2 target, double time)`_
+ # *MOVEMENT*.
+  * Active agents change their locations based on previously assigned directions.
+   * _`Team.move(double stepTime)`_
+   * _`Agent.move(double stepTime)`_
