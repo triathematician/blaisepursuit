@@ -18,7 +18,9 @@ import utility.DistanceTable;
  */
 public class AutoClosest extends AutonomousTaskGenerator {
 
-    public AutoClosest(Team target,int type){ super(target,type);}
+    public AutoClosest(Team target,int type){ 
+        super(target,type);
+    }
         
 //    /** Performs tasking based on a preset goal.
 //     * @param team the team to assign tasks to

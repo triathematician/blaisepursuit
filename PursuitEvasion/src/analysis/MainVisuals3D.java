@@ -11,12 +11,12 @@ import java.awt.event.ActionListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import sequor.model.PointRangeModel;
+import sequor.style.LineStyle;
 import simulation.Agent;
 import simulation.Simulation;
 import simulation.Team;
 import specto.Plottable;
 import specto.PlottableGroup;
-import specto.euclidean2.PointSet2D;
 import specto.euclidean3.Euclidean3;
 import specto.euclidean3.Point3D;
 import specto.euclidean3.PointSet3D;
@@ -53,8 +53,9 @@ public class MainVisuals3D extends PlottableGroup<Euclidean3> implements ActionL
         setName(sim.getName());
         clear();
         for (Team t : sim.getTeams()) { add(new TeamVisuals(t)); }
-        PointSet3D captures = new PointSet3D(sim.log.capturePoints3D,Color.RED,PointSet2D.POINTS_ONLY);  
-        add(captures);
+        add(new PointSet3D(sim.log.capturePoints3D, Color.PINK, LineStyle.POINTS_ONLY){
+            @Override public String toString() { return "CAPTURE LOCATIONS"; }
+        });
     }    
     
     // EVENT HANDLING

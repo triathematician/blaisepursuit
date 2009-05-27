@@ -166,8 +166,17 @@ public class Simulation implements ActionListener {
     public void setPitchSize(double newValue){ss.pitchSize.setValue(newValue);}
         
     /** Returns list of teams used in the simulation. */
-    public Vector<Team> getTeams(){return teams;}
-    public void setTeams(Vector<Team> newTeams){ if(newTeams!=null){ teams = newTeams; } fireActionPerformed("reset"); }
+    public Vector<Team> getTeams(){
+        return teams;    
+    }
+
+    public void setTeams(Vector<Team> newTeams){
+        if(newTeams!=null){
+            teams = newTeams;
+        }
+        fireActionPerformed("reset");
+    }
+
     public void addTeam(Team team) {
         if (team==null) { return; }
         teams.add(team);
@@ -183,7 +192,26 @@ public class Simulation implements ActionListener {
         }
         return null;
     }
+
     
+    // COPY METHODS
+
+    /** Creates a copy of this simulation. */
+    public Simulation copy() {
+        Simulation s2 = new Simulation();
+        s2.setName(getName()+" copy");
+        s2.setStepTime(getStepTime());
+        s2.setNumSteps(getNumSteps());
+        s2.setMaxSteps(getMaxSteps());
+        s2.setPitchSize(getPitchSize());
+        for (Team t : teams) {
+            s2.addTeam(t.copy(false));
+        }
+        s2.update();
+        return s2;
+    }
+
+
     //   
     // BEAN PATTERNS (others)
     //
@@ -347,10 +375,14 @@ public class Simulation implements ActionListener {
         }
         
         // Step 6. Fuse tasks
-        for(Team t:teams){t.planPaths(time,getStepTime());}
+        for(Team t:teams){
+            t.planPaths(time, getStepTime());
+        }
         
         // Step 7. Move agents
-        for(Team t:teams){t.move(getStepTime());}
+        for(Team t:teams){
+            t.move(getStepTime());
+        }
         
         return false;
     }

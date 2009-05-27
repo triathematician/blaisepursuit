@@ -165,9 +165,9 @@ public class Agent {
         //System.out.println(this+" assigned "+t);
     }
 
-    public void generateTasks(Team team,DistanceTable table, double priority) {
+    public void generateTasks(Team team, DistanceTable dt, double priority) {
         for(Tasking tag:taskings){
-            tag.tasker.generate(team.getActiveAgents(), table, tag.getWeight()*priority);
+            tag.tasker.generate(team.getActiveAgents(), dt, tag.getWeight()*priority);
         }
     }
     
@@ -176,9 +176,9 @@ public class Agent {
     
     /** Gathers sensory data based on distanceTo table.
      * @param dist the global table of distances */
-    public void gatherSensoryData(DistanceTable dist){
+    public void gatherSensoryData(DistanceTable dt){
         pov.clear();
-        pov.addAll(dist.getAgentsInRadius(this,getSensorRange()));
+        pov.addAll(dt.getAgentsInRadius(this, getSensorRange()));
     }
     /** Generates communications events based on sensory data that should be passed on to team members.
      * These events are sent to agents within communications range, who then adjust their understanding
@@ -187,14 +187,16 @@ public class Agent {
      * stored in memory.
      * @param team the agent's team
      * @param dist the global table of distances */
-    public void generateSensoryEvents(Team team,DistanceTable dist){
+    public void generateSensoryEvents(Team team, DistanceTable dist){
         for(Agent a:dist.getAgentsInRadius(this, team.getActiveAgents(), getCommRange())){
             a.acceptSensoryEvent(pov);
         }
     }
     /** Accept a communication based on sensory data
      * @param agents list of agent positions communicated */
-    public void acceptSensoryEvent(Collection<Agent> agents){commpov.addAll(agents);}
+    public void acceptSensoryEvent(Collection<Agent> agents){
+        commpov.addAll(agents);
+    }
     
     /** Forms belief about the playing field by fusing own understanding
      * of playing field with that suggested by others. */
@@ -213,11 +215,11 @@ public class Agent {
      * @param time      the current time stamp
      * @param stepTime  the time between iterations
      */
-    public void planPath(double time,double stepTime){
+    public void planPath(double time, double stepTime){
         if(myBehavior instanceof ApproachPath){
-            dLoc=myBehavior.direction(this,null,time).multipliedBy(getTopSpeed());
+            dLoc=myBehavior.direction(this, null, time).multipliedBy(getTopSpeed());
         }else{
-            dLoc=TaskFusion.getVector(this,tasks,time).multipliedBy(getTopSpeed());
+            dLoc=TaskFusion.getVector(this, tasks, time).multipliedBy(getTopSpeed());
         }
         if(java.lang.Double.isNaN(dLoc.x)){
             //System.out.println("nan in path planning "+dLoc.toString()+" and pos x="+loc.x+" y="+loc.y);
@@ -293,6 +295,7 @@ public class Agent {
     public void setColorModel(ColorModel cm) { ags.color.copyValuesFrom(cm); }  
     
     public void setColorValue(Color newValue){ags.color.setValue(newValue);}
+    public Color getColorValue() { return ags.color.getValue(); }
     
     @XmlAttribute(name="behaviorCode")
     public int getBehaviorCode(){return ags.behavior.getValue();}

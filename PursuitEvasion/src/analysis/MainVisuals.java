@@ -8,7 +8,7 @@ package analysis;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Collection;
+import sequor.style.LineStyle;
 import simulation.Agent;
 import simulation.Simulation;
 import simulation.Team;
@@ -50,8 +50,10 @@ public class MainVisuals extends PlottableGroup<Euclidean2> implements ActionLis
         this.sim = sim;
         sim.addActionListener(this);
         setName(sim.getName());
-        clear();  
-        add(new PointSet2D(sim.log.capturePoints,Color.PINK,PointSet2D.POINTS_ONLY));
+        clear();
+        add(new PointSet2D(sim.log.capturePoints, Color.PINK, LineStyle.POINTS_ONLY){
+            @Override public String toString() { return "CAPTURE LOCATIONS"; }
+        });
         for (Team t : sim.getTeams()) { add(new TeamVisuals(t)); }
     }
 

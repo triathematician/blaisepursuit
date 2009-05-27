@@ -6,7 +6,6 @@
 package tasking;
 
 import java.util.Collection;
-import scio.coordinate.V2;
 import simulation.Agent;
 import simulation.Team;
 import utility.DistanceTable;
@@ -16,10 +15,23 @@ import utility.DistanceTable;
  * @author Elisha Peterson
  */
 public abstract class TaskGenerator {
+
     protected Team target;
+    
     protected int type;
-    public TaskGenerator(Team target,int type){this.target=target;this.type=type;}
-    public abstract void generate(Collection<Agent> team, DistanceTable table, double priority);
-    public void setTarget(Team target) { this.target = target; }
-    public Team getTarget() { return target; }
+
+    public TaskGenerator(Team target, int type){
+        this.target=target;
+        this.type=type;
+    }
+
+    public abstract void generate(Collection<Agent> team, DistanceTable dt, double priority);
+
+    public void setTarget(Team target) {
+        this.target = target;
+    }
+
+    public Team getTarget() { 
+        return target;
+    }
 }

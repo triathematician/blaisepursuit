@@ -154,8 +154,8 @@ public class SimulationLog extends FiresChangeEvents {
     /** Goes through all agents/teams in list and logs desired values. */
     public void logAll(int timeStep, DistanceTable dt, CaptureMap cap){
         for(Agent a:agentPaths.keySet()){
-            agentPaths.get(a).add(new R2(a.loc.x,a.loc.y));
             if(timeStep==0 || a.isActive()) {
+                agentPaths.get(a).add(new R2(a.loc.x,a.loc.y));
                 agentPaths3D.get(a).add(new R3(a.loc.x,a.loc.y,timeStep*sim.getStepTime()));
             }
         }

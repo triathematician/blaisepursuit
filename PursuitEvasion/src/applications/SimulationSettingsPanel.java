@@ -103,6 +103,9 @@ public class SimulationSettingsPanel extends SettingsTreePanel implements Action
             Settings sParent = (Settings) parent.getUserObject();
             Team team = (sParent instanceof Simulation.SimSettings) ? null : (Team) getSelectedAdder();
             if (sParent instanceof Simulation.SimSettings) {
+                if (sim == null) {
+                    sim = new Simulation();
+                }
                 sim.addTeam(new Team("new team"));
             } else if (sParent instanceof Team.TeamSettings || sParent instanceof Agent.AgentSettings || sParent.getName().equals("Agents")) {
                 team.setAgentNumber(team.getAgentNumber()+1);
@@ -117,14 +120,16 @@ public class SimulationSettingsPanel extends SettingsTreePanel implements Action
             }
             sim.update();
         } else if (ac.equals("remove") && tree.getSelectionPath()!=null) {
-            DefaultMutableTreeNode parent,node;
+            DefaultMutableTreeNode parent, node;
             node = (DefaultMutableTreeNode) tree.getSelectionPath().getLastPathComponent();
             parent = (DefaultMutableTreeNode) node.getParent();
-            int nodeIndex=parent.getIndex(node);
-            node.removeAllChildren();         
-            if (nodeIndex != -1) { parent.remove(nodeIndex); }
-            ((DefaultTreeModel )tree.getModel()).nodeStructureChanged((TreeNode)node);
-            sim.update();
+            if (parent != null) {
+                int nodeIndex = parent.getIndex(node);
+                node.removeAllChildren();
+                if (nodeIndex != -1) { parent.remove(nodeIndex); }
+                ((DefaultTreeModel )tree.getModel()).nodeStructureChanged((TreeNode)node);
+                sim.update();
+            }
         }
     }
     

@@ -52,7 +52,7 @@ public class Task {
      * @param target the object of the task
      * @param type 0 if trivial, 1 if pursue, 2 if evade
      * @param priority priority of the task, between 0 and 1 */
-    public Task(TaskGenerator source,V2 target,int type,double priority){
+    public Task(TaskGenerator source, V2 target, int type, double priority){
         this.source=source;
         this.target=target;
         this.taskType=type;

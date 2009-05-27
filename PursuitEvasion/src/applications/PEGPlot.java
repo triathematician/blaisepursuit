@@ -3,33 +3,25 @@
  * Created on September 8, 2007, 8:59 AM
  */
 
-// TODO synchronize timers in the two different plot windows.
-
     package applications;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.event.InternalFrameEvent;
 import javax.xml.bind.JAXBException;
-import scio.coordinate.R2;
 import sequor.editor.ComboBoxEditor;
-import analysis.Statistics;
-import analysis.SimulationLog;
-import java.awt.Toolkit;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
 import java.io.File;
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileFilter;
 import metrics.Valuation;
-import scio.coordinate.R3;
 import sequor.SettingsFactory;
+import sequor.style.AnimateLineStyle;
+import simulation.Simulation;
 import simulation.Team;
-import specto.euclidean2.PointSet2D;
+import utility.SimulationFactory;
 import utility.XmlHandler;
 
 /**
@@ -58,29 +50,8 @@ public class PEGPlot extends javax.swing.JFrame {
     public PEGPlot() {    
         try { UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName()); } catch (Exception e) {}
 
-        initComponents();                
-        plot2D1.getVisometry().setBounds(new R2(-70,-70),new R2(70,70));
+        initComponents();
         
-        plot3D1.getVisometry().setBounds(new R2(-150,-150),new R2(150,150));
-        plot3D1.getVisometry().setTDir(new R3(-.28,.73,-.623));
-        plot3D1.getVisometry().setNDir(new R3(.9,.436,0));
-        plot3D1.getVisometry().setBDir(new R3(-.272,.561,.779));
-        plot3D1.getVisometry().setSceneSize(100);
-        plot3D1.getVisometry().setViewDist(150);
-        
-        metricsPlot.getVisometry().setBounds(new R2(-10,-10),new R2(500,150));
-        metricsPlot.synchronizeTimerWith(plot2D1);
-        plot3D1.synchronizeTimerWith(plot2D1);
-        
-        mainVisuals1.setSim(simulation1);
-        mainVisuals3D1.setSim(simulation1);
-        metricVisuals1.setSim(simulation1);
-        plot2D1.add(mainVisuals1);
-        plot3D1.add(mainVisuals3D1);
-        metricsPlot.add(metricVisuals1);
-        metricsPlot.add(metricVisuals1.getLegend(),5,2);
-        simulation1.run();
-        simulationComboBox.setModel(new ComboBoxEditor(simulation1.getGameTypeModel()));
         fc.addChoosableFileFilter(new FileFilter(){
             public boolean accept(File f) {
                 return (f.isDirectory())
@@ -99,29 +70,10 @@ public class PEGPlot extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        menuSimModeGroup = new javax.swing.ButtonGroup();
+        simPanel1 = new applications.SimPanel();
         numBatchRunsModel = new sequor.model.IntegerRangeModel(100,0,100000);
+        animationStyleGroup = new javax.swing.ButtonGroup();
         simulation1 = new simulation.Simulation();
-        mainVisuals1 = new analysis.MainVisuals();
-        metricVisuals1 = new analysis.MetricVisuals();
-        mainVisuals3D1 = new analysis.MainVisuals3D();
-        pathOptionsGroup = new javax.swing.ButtonGroup();
-        jSplitPane2 = new javax.swing.JSplitPane();
-        mainViewPane = new javax.swing.JTabbedPane();
-        plot2D1 = new specto.euclidean2.Plot2D();
-        plot3D1 = new specto.euclidean3.Plot3D();
-        jPanel1 = new javax.swing.JPanel();
-        jSplitPane1 = new javax.swing.JSplitPane();
-        simulationSettingsPanel1 = new applications.SimulationSettingsPanel();
-        infoPane = new javax.swing.JTabbedPane();
-        metricsPlot = new specto.euclidean2.Plot2D();
-        jScrollPane5 = new javax.swing.JScrollPane();
-        logWindow = new javax.swing.JTextArea();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        dataWindow = new javax.swing.JTextArea();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        codeWindow = new javax.swing.JTextArea();
-        jScrollPane3 = new javax.swing.JScrollPane();
         statusBar = new javax.swing.JPanel();
         statusText = new javax.swing.JLabel();
         jToolBar1 = new javax.swing.JToolBar();
@@ -132,9 +84,7 @@ public class PEGPlot extends javax.swing.JFrame {
         batchButton = new javax.swing.JButton();
         numBatchRunsSpinner = SettingsFactory.getSpinner(numBatchRunsModel);
         cooperationButton = new javax.swing.JButton();
-        startingPositionsButton = new javax.swing.JButton();
-        jSeparator3 = new javax.swing.JToolBar.Separator();
-        addDotsButton = new javax.swing.JButton();
+        jDesktopPane1 = new javax.swing.JDesktopPane();
         jMenuBar1 = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         newMenuItem = new javax.swing.JMenuItem();
@@ -144,141 +94,23 @@ public class PEGPlot extends javax.swing.JFrame {
         simulationMenu = new javax.swing.JMenu();
         randomizeMenuItem = new javax.swing.JMenuItem();
         animateMenuItem = new javax.swing.JMenuItem();
-        settingsMenu = new javax.swing.JMenu();
-        ModeMenu = new javax.swing.JMenu();
-        jRadioButtonMenuItem1 = new javax.swing.JRadioButtonMenuItem();
-        jRadioButtonMenuItem2 = new javax.swing.JRadioButtonMenuItem();
-        jRadioButtonMenuItem3 = new javax.swing.JRadioButtonMenuItem();
+        duplicateMenuItem = new javax.swing.JMenuItem();
         appearanceMenu = new javax.swing.JMenu();
-        jCheckBoxMenuItem6 = new javax.swing.JCheckBoxMenuItem();
-        jCheckBoxMenuItem2 = new javax.swing.JCheckBoxMenuItem();
-        jMenu1 = new javax.swing.JMenu();
-        jRadioButtonMenuItem4 = new javax.swing.JRadioButtonMenuItem();
-        jRadioButtonMenuItem5 = new javax.swing.JRadioButtonMenuItem();
-        jRadioButtonMenuItem6 = new javax.swing.JRadioButtonMenuItem();
+        showAnimationControlsMI = new javax.swing.JCheckBoxMenuItem();
+        showMarkerBoxMI = new javax.swing.JCheckBoxMenuItem();
+        show3DControlsMI = new javax.swing.JCheckBoxMenuItem();
+        animationMenu = new javax.swing.JMenu();
+        showStartingMI = new javax.swing.JCheckBoxMenuItem();
+        showPositionLabelsMI = new javax.swing.JCheckBoxMenuItem();
+        showCommMI = new javax.swing.JCheckBoxMenuItem();
         jSeparator4 = new javax.swing.JSeparator();
-        jCheckBoxMenuItem1 = new javax.swing.JCheckBoxMenuItem();
-        jSeparator2 = new javax.swing.JSeparator();
-        jCheckBoxMenuItem3 = new javax.swing.JCheckBoxMenuItem();
-        jCheckBoxMenuItem4 = new javax.swing.JCheckBoxMenuItem();
-        jCheckBoxMenuItem5 = new javax.swing.JCheckBoxMenuItem();
-
-        simulation1.setGameType(2);
-        simulation1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                simulation1ActionPerformed(evt);
-            }
-        });
+        animateDrawPathsMI = new javax.swing.JRadioButtonMenuItem();
+        animateTracePathsMI = new javax.swing.JRadioButtonMenuItem();
+        animateMovingDotsMI = new javax.swing.JRadioButtonMenuItem();
+        animateMovingTrianglesMI = new javax.swing.JRadioButtonMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Pursuit-Evasion Games");
-
-        jSplitPane2.setDividerLocation(500);
-        jSplitPane2.setDividerSize(10);
-        jSplitPane2.setOneTouchExpandable(true);
-
-        plot2D1.setAxisStyle(1);
-
-        javax.swing.GroupLayout plot2D1Layout = new javax.swing.GroupLayout(plot2D1);
-        plot2D1.setLayout(plot2D1Layout);
-        plot2D1Layout.setHorizontalGroup(
-            plot2D1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 525, Short.MAX_VALUE)
-        );
-        plot2D1Layout.setVerticalGroup(
-            plot2D1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 464, Short.MAX_VALUE)
-        );
-
-        mainViewPane.addTab("2D View", plot2D1);
-
-        plot3D1.setBackground(new java.awt.Color(0, 0, 0));
-        plot3D1.setZLabel("time");
-        plot3D1.setAxisStyle(3);
-
-        javax.swing.GroupLayout plot3D1Layout = new javax.swing.GroupLayout(plot3D1);
-        plot3D1.setLayout(plot3D1Layout);
-        plot3D1Layout.setHorizontalGroup(
-            plot3D1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 525, Short.MAX_VALUE)
-        );
-        plot3D1Layout.setVerticalGroup(
-            plot3D1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 464, Short.MAX_VALUE)
-        );
-
-        mainViewPane.addTab("3D View", plot3D1);
-
-        jSplitPane2.setRightComponent(mainViewPane);
-
-        jSplitPane1.setDividerLocation(300);
-        jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-
-        simulationSettingsPanel1.setSim(simulation1);
-        jSplitPane1.setTopComponent(simulationSettingsPanel1);
-
-        infoPane.setToolTipText("See information regarding the simulations.");
-        infoPane.setMaximumSize(new java.awt.Dimension(450, 600));
-
-        metricsPlot.setToolTipText("Shows metrics for each team based on victory conditions and other metrics. \nNote that the solid line shows the metric and the dotted line shows the metric as perceived by the selected subset.");
-        metricsPlot.setAnimatorVisible(false);
-        metricsPlot.setMarkerBoxVisible(false);
-
-        javax.swing.GroupLayout metricsPlotLayout = new javax.swing.GroupLayout(metricsPlot);
-        metricsPlot.setLayout(metricsPlotLayout);
-        metricsPlotLayout.setHorizontalGroup(
-            metricsPlotLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 492, Short.MAX_VALUE)
-        );
-        metricsPlotLayout.setVerticalGroup(
-            metricsPlotLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 158, Short.MAX_VALUE)
-        );
-
-        infoPane.addTab("Metrics", metricsPlot);
-
-        logWindow.setColumns(20);
-        logWindow.setEditable(false);
-        logWindow.setRows(5);
-        logWindow.setToolTipText("See information about simulations which have been run.");
-        jScrollPane5.setViewportView(logWindow);
-
-        infoPane.addTab("Log", jScrollPane5);
-
-        dataWindow.setColumns(20);
-        dataWindow.setRows(5);
-        dataWindow.setToolTipText("See a table of data obtained from the last simulation.");
-        jScrollPane1.setViewportView(dataWindow);
-
-        infoPane.addTab("Data", jScrollPane1);
-
-        codeWindow.setColumns(20);
-        codeWindow.setRows(5);
-        jScrollPane2.setViewportView(codeWindow);
-
-        infoPane.addTab("Code", jScrollPane2);
-
-        jScrollPane3.setToolTipText("Communications network of the teams.");
-        jScrollPane3.setEnabled(false);
-        jScrollPane3.setFocusable(false);
-        infoPane.addTab("Network View", jScrollPane3);
-
-        jSplitPane1.setRightComponent(infoPane);
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE)
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 492, Short.MAX_VALUE)
-        );
-
-        jSplitPane2.setLeftComponent(jPanel1);
-
-        getContentPane().add(jSplitPane2, java.awt.BorderLayout.CENTER);
 
         statusBar.setBackground(new java.awt.Color(255, 255, 255));
         statusBar.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
@@ -289,7 +121,7 @@ public class PEGPlot extends javax.swing.JFrame {
         statusBar.setLayout(statusBarLayout);
         statusBarLayout.setHorizontalGroup(
             statusBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(statusText, javax.swing.GroupLayout.DEFAULT_SIZE, 1039, Short.MAX_VALUE)
+            .addComponent(statusText, javax.swing.GroupLayout.DEFAULT_SIZE, 1042, Short.MAX_VALUE)
         );
         statusBarLayout.setVerticalGroup(
             statusBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -303,8 +135,13 @@ public class PEGPlot extends javax.swing.JFrame {
         jLabel1.setText("Game Preset:  ");
         jToolBar1.add(jLabel1);
 
-        simulationComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        simulationComboBox.setModel(new ComboBoxEditor(SimulationFactory.comboBoxRangeModel()));
         simulationComboBox.setMaximumSize(new java.awt.Dimension(250, 20));
+        simulationComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                simulationComboBoxActionPerformed(evt);
+            }
+        });
         jToolBar1.add(simulationComboBox);
         jToolBar1.add(jSeparator1);
 
@@ -345,32 +182,10 @@ public class PEGPlot extends javax.swing.JFrame {
         });
         jToolBar1.add(cooperationButton);
 
-        startingPositionsButton.setFont(new java.awt.Font("Tahoma", 1, 12));
-        startingPositionsButton.setText("GET START POSITIONS");
-        startingPositionsButton.setFocusable(false);
-        startingPositionsButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        startingPositionsButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        startingPositionsButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                startingPositionsButtonActionPerformed(evt);
-            }
-        });
-        jToolBar1.add(startingPositionsButton);
-        jToolBar1.add(jSeparator3);
-
-        addDotsButton.setText("Add Dots");
-        addDotsButton.setEnabled(false);
-        addDotsButton.setFocusable(false);
-        addDotsButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        addDotsButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        addDotsButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                addDotsButtonActionPerformed(evt);
-            }
-        });
-        jToolBar1.add(addDotsButton);
-
         getContentPane().add(jToolBar1, java.awt.BorderLayout.NORTH);
+
+        jDesktopPane1.setPreferredSize(new java.awt.Dimension(600, 500));
+        getContentPane().add(jDesktopPane1, java.awt.BorderLayout.CENTER);
 
         fileMenu.setText("File");
 
@@ -428,125 +243,114 @@ public class PEGPlot extends javax.swing.JFrame {
         });
         simulationMenu.add(animateMenuItem);
 
+        duplicateMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_D, java.awt.event.InputEvent.CTRL_MASK));
+        duplicateMenuItem.setText("Duplicate Simulation");
+        duplicateMenuItem.setEnabled(false);
+        duplicateMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                duplicateMenuItemActionPerformed(evt);
+            }
+        });
+        simulationMenu.add(duplicateMenuItem);
+
         jMenuBar1.add(simulationMenu);
 
-        settingsMenu.setText("Settings");
-        settingsMenu.setEnabled(false);
+        appearanceMenu.setText("Window Appearance");
 
-        ModeMenu.setText("Simulation Mode");
-        ModeMenu.setEnabled(false);
-
-        jRadioButtonMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_1, java.awt.event.InputEvent.ALT_MASK | java.awt.event.InputEvent.CTRL_MASK));
-        menuSimModeGroup.add(jRadioButtonMenuItem1);
-        jRadioButtonMenuItem1.setSelected(true);
-        jRadioButtonMenuItem1.setText("One Simulation (Dynamic)");
-        ModeMenu.add(jRadioButtonMenuItem1);
-
-        jRadioButtonMenuItem2.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_2, java.awt.event.InputEvent.ALT_MASK | java.awt.event.InputEvent.CTRL_MASK));
-        menuSimModeGroup.add(jRadioButtonMenuItem2);
-        jRadioButtonMenuItem2.setText("Two Simulations (Comparison)");
-        ModeMenu.add(jRadioButtonMenuItem2);
-
-        jRadioButtonMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_3, java.awt.event.InputEvent.ALT_MASK | java.awt.event.InputEvent.CTRL_MASK));
-        menuSimModeGroup.add(jRadioButtonMenuItem3);
-        jRadioButtonMenuItem3.setText("Multiple Simulations (Statistical)");
-        ModeMenu.add(jRadioButtonMenuItem3);
-
-        settingsMenu.add(ModeMenu);
-
-        jMenuBar1.add(settingsMenu);
-
-        appearanceMenu.setText("Appearance");
-
-        jCheckBoxMenuItem6.setSelected(true);
-        jCheckBoxMenuItem6.setText("Show starting points");
-        jCheckBoxMenuItem6.addActionListener(new java.awt.event.ActionListener() {
+        showAnimationControlsMI.setSelected(true);
+        showAnimationControlsMI.setText("Show animation controls");
+        showAnimationControlsMI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxMenuItem6ActionPerformed(evt);
+                showAnimationControlsMIActionPerformed(evt);
             }
         });
-        appearanceMenu.add(jCheckBoxMenuItem6);
+        appearanceMenu.add(showAnimationControlsMI);
 
-        jCheckBoxMenuItem2.setSelected(true);
-        jCheckBoxMenuItem2.setText("Show comm networks");
-        jCheckBoxMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+        showMarkerBoxMI.setText("Show marker box");
+        showMarkerBoxMI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxMenuItem2ActionPerformed(evt);
+                showMarkerBoxMIActionPerformed(evt);
             }
         });
-        appearanceMenu.add(jCheckBoxMenuItem2);
+        appearanceMenu.add(showMarkerBoxMI);
 
-        jMenu1.setText("Path Animation");
-
-        pathOptionsGroup.add(jRadioButtonMenuItem4);
-        jRadioButtonMenuItem4.setSelected(true);
-        jRadioButtonMenuItem4.setText("Standard");
-        jRadioButtonMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+        show3DControlsMI.setText("Show 3d controls");
+        show3DControlsMI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonMenuItem4ActionPerformed(evt);
+                show3DControlsMIActionPerformed(evt);
             }
         });
-        jMenu1.add(jRadioButtonMenuItem4);
-
-        pathOptionsGroup.add(jRadioButtonMenuItem5);
-        jRadioButtonMenuItem5.setText("No trails");
-        jRadioButtonMenuItem5.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonMenuItem5ActionPerformed(evt);
-            }
-        });
-        jMenu1.add(jRadioButtonMenuItem5);
-
-        pathOptionsGroup.add(jRadioButtonMenuItem6);
-        jRadioButtonMenuItem6.setText("Trace paths");
-        jRadioButtonMenuItem6.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonMenuItem6ActionPerformed(evt);
-            }
-        });
-        jMenu1.add(jRadioButtonMenuItem6);
-        jMenu1.add(jSeparator4);
-
-        jCheckBoxMenuItem1.setSelected(true);
-        jCheckBoxMenuItem1.setText("Show position labels");
-        jCheckBoxMenuItem1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxMenuItem1ActionPerformed(evt);
-            }
-        });
-        jMenu1.add(jCheckBoxMenuItem1);
-
-        appearanceMenu.add(jMenu1);
-        appearanceMenu.add(jSeparator2);
-
-        jCheckBoxMenuItem3.setSelected(true);
-        jCheckBoxMenuItem3.setText("Show animation controls");
-        jCheckBoxMenuItem3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxMenuItem3ActionPerformed(evt);
-            }
-        });
-        appearanceMenu.add(jCheckBoxMenuItem3);
-
-        jCheckBoxMenuItem4.setSelected(true);
-        jCheckBoxMenuItem4.setText("Show marker box");
-        jCheckBoxMenuItem4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxMenuItem4ActionPerformed(evt);
-            }
-        });
-        appearanceMenu.add(jCheckBoxMenuItem4);
-
-        jCheckBoxMenuItem5.setSelected(true);
-        jCheckBoxMenuItem5.setText("Show 3d controls");
-        jCheckBoxMenuItem5.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxMenuItem5ActionPerformed(evt);
-            }
-        });
-        appearanceMenu.add(jCheckBoxMenuItem5);
+        appearanceMenu.add(show3DControlsMI);
 
         jMenuBar1.add(appearanceMenu);
+
+        animationMenu.setText("Path Appearance");
+
+        showStartingMI.setSelected(true);
+        showStartingMI.setText("Show starting points");
+        showStartingMI.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showStartingMIActionPerformed(evt);
+            }
+        });
+        animationMenu.add(showStartingMI);
+
+        showPositionLabelsMI.setSelected(true);
+        showPositionLabelsMI.setText("Show position labels");
+        showPositionLabelsMI.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showPositionLabelsMIActionPerformed(evt);
+            }
+        });
+        animationMenu.add(showPositionLabelsMI);
+
+        showCommMI.setText("Show comm networks");
+        showCommMI.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showCommMIActionPerformed(evt);
+            }
+        });
+        animationMenu.add(showCommMI);
+        animationMenu.add(jSeparator4);
+
+        animationStyleGroup.add(animateDrawPathsMI);
+        animateDrawPathsMI.setSelected(true);
+        animateDrawPathsMI.setText("Draw paths");
+        animateDrawPathsMI.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                animateDrawPathsMIActionPerformed(evt);
+            }
+        });
+        animationMenu.add(animateDrawPathsMI);
+
+        animationStyleGroup.add(animateTracePathsMI);
+        animateTracePathsMI.setText("Trace paths");
+        animateTracePathsMI.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                animateTracePathsMIActionPerformed(evt);
+            }
+        });
+        animationMenu.add(animateTracePathsMI);
+
+        animationStyleGroup.add(animateMovingDotsMI);
+        animateMovingDotsMI.setText("Moving dots");
+        animateMovingDotsMI.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                animateMovingDotsMIActionPerformed(evt);
+            }
+        });
+        animationMenu.add(animateMovingDotsMI);
+
+        animationStyleGroup.add(animateMovingTrianglesMI);
+        animateMovingTrianglesMI.setText("Moving triangles");
+        animateMovingTrianglesMI.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                animateMovingTrianglesMIActionPerformed(evt);
+            }
+        });
+        animationMenu.add(animateMovingTrianglesMI);
+
+        jMenuBar1.add(animationMenu);
 
         setJMenuBar(jMenuBar1);
 
@@ -565,7 +369,7 @@ private void quitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
 
 private void randomizeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_randomizeButtonActionPerformed
     statusText.setText("Randomizing starting locations...");
-    logWindow.append("\nNEW SIMULATION\n");
+    simPanel1.log("\nNEW SIMULATION");
     simulation1.initStartingLocations();
     simulation1.run();
     success();
@@ -575,91 +379,21 @@ private void success(){
     statusText.setText("Success! Awaiting further instructions.");
 }
 
-    @SuppressWarnings("unchecked")
-private void simulation1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_simulation1ActionPerformed
-    //System.out.println("pegplot action performed: "+evt.getActionCommand());
-    if(evt.getActionCommand().equals("redraw")){
-        plot2D1.repaint();
-        plot3D1.repaint();
-        metricsPlot.repaint();
-        simulationSettingsPanel1.repaint();
-    }
-    // simulation has changed in some fundamental way
-    else if(evt.getActionCommand().equals("reset")){
-        statusText.setText("Resetting simulation...");
-        plot2D1.rebuildOptionsMenu();
-        plot3D1.rebuildOptionsMenu();
-        metricsPlot.rebuildOptionsMenu();
-        simulationSettingsPanel1.setTree(simulation1.ss);
-    }
-    // simulation has changed enough to require rebuilding all the visuals as well as the simulation
-    else if(evt.getActionCommand().equals("update")){
-        statusText.setText("Updating simulation...");
-        mainVisuals1.setSim(simulation1);
-        mainVisuals3D1.setSim(simulation1);
-        metricVisuals1.setSim(simulation1);
-        simulation1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) { simulation1ActionPerformed(evt); }
-        });
-        simulationComboBox.setModel(new ComboBoxEditor(simulation1.getGameTypeModel()));
-        plot2D1.rebuildOptionsMenu();
-        plot3D1.rebuildOptionsMenu();
-        metricsPlot.rebuildOptionsMenu();
-        simulationSettingsPanel1.setTree(simulation1.ss);
-        simulation1.run();
-    }
-    else if(evt.getActionCommand().equals("log")){
-        if(evt.getSource() instanceof SimulationLog){
-            ((SimulationLog)evt.getSource()).output(logWindow);
-        }else if(evt.getSource() instanceof Statistics){
-            ((Statistics)evt.getSource()).output(logWindow);
-            // copy stats to dataWindow and then to clipboard
-            statusText.setText("Copying stats to clipboard...");
-            ((Statistics)evt.getSource()).outputData(dataWindow); 
-            StringSelection data = new StringSelection(dataWindow.getText());
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(data, data);
-            // display happy message            
-            statusText.setText("Success! The batch data has been copied to the clipboard.");
-        }
-    }
-    else{
-        logWindow.append(evt.getActionCommand()+"\n");
-        statusText.setText(evt.getActionCommand());
-    }
-}//GEN-LAST:event_simulation1ActionPerformed
-
-    private void addDotsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addDotsButtonActionPerformed
-        JOptionPane.showMessageDialog(this, "Sorry, dots are currently unavailable.","Functionality unavailable",JOptionPane.ERROR_MESSAGE);
-//PlaneFunction2D pf=new Statistics().getInitialPositionTestPlot(simulation1);
-        //pf.style.setValue(PlaneFunction2D.DOTS);
-        //plot2D1.add(pf);
-}//GEN-LAST:event_addDotsButtonActionPerformed
-
     private void cooperationButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cooperationButtonActionPerformed
         statusText.setText("Printing cooperation metrics...");
         for (Team t : simulation1.getTeams()) {
             if (t.victory != null) {
-                logWindow.append(t.victory.getCooperationMetric(simulation1).toString());
+                simPanel1.log(t.victory.getCooperationMetric(simulation1).toString());
             }
             for (Valuation v : t.metrics) {
-                logWindow.append(v.getCooperationMetric(simulation1).toString());
+                simPanel1.log(v.getCooperationMetric(simulation1).toString());
             }
         }    
         statusText.setText("Success! Check the log window for cooperation metrics.");
 }//GEN-LAST:event_cooperationButtonActionPerformed
 
-private void startingPositionsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startingPositionsButtonActionPerformed
-    try {codeWindow.getDocument().remove(0, codeWindow.getDocument().getLength()-1);}catch(Exception e){}
-    simulation1.log.printStartingLocations(logWindow, codeWindow);
-    StringSelection data = new StringSelection(codeWindow.getText());
-    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(data, data);
-    // display result message
-    statusText.setText("Success! The starting positions are in the log."
-            + " The Java code to re-initialize teams to these positions is in the clipboard and the code window.");
-}//GEN-LAST:event_startingPositionsButtonActionPerformed
-
 private void animateMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_animateMenuItemActionPerformed
-    plot2D1.getTimer().start();    
+    simPanel1.animate();
 }//GEN-LAST:event_animateMenuItemActionPerformed
 
 private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
@@ -669,9 +403,7 @@ private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
                 File file = fc.getSelectedFile();
                 //This is where a real application would open the file.
                 statusText.setText("Opening: " + file.getName() + ".");
-                simulation1 = XmlHandler.unmarshal(file);
-                simulation1ActionPerformed(new ActionEvent(this,0,"update"));
-                simulation1.run();
+                addFrame(XmlHandler.unmarshal(file));
             } catch (JAXBException ex) {
                 Logger.getLogger(PEGPlot.class.getName()).log(Level.SEVERE, null, ex);
             } catch (FileNotFoundException ex) {
@@ -704,65 +436,56 @@ private void saveMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
     }
 }//GEN-LAST:event_saveMenuItemActionPerformed
 
-private void jCheckBoxMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItem3ActionPerformed
-    plot2D1.setAnimatorVisible(jCheckBoxMenuItem3.getState());
-    plot3D1.setAnimatorVisible(jCheckBoxMenuItem3.getState());
-    plot2D1.repaint();
-    plot3D1.repaint();
-}//GEN-LAST:event_jCheckBoxMenuItem3ActionPerformed
+private void showAnimationControlsMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showAnimationControlsMIActionPerformed
+    simPanel1.setAnimatorVisible(showAnimationControlsMI.getState());
+}//GEN-LAST:event_showAnimationControlsMIActionPerformed
 
-private void jCheckBoxMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItem4ActionPerformed
-    plot2D1.setMarkerBoxVisible(jCheckBoxMenuItem4.getState());
-    plot3D1.setMarkerBoxVisible(jCheckBoxMenuItem4.getState());
-    plot2D1.repaint();
-    plot3D1.repaint();
-}//GEN-LAST:event_jCheckBoxMenuItem4ActionPerformed
+private void showMarkerBoxMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showMarkerBoxMIActionPerformed
+    simPanel1.setMarkerBoxVisible(showMarkerBoxMI.getState());
+}//GEN-LAST:event_showMarkerBoxMIActionPerformed
 
-private void jCheckBoxMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItem5ActionPerformed
-    plot3D1.setControlsVisible(jCheckBoxMenuItem5.getState());
-    plot3D1.setViewBoxVisible(jCheckBoxMenuItem5.getState());
-    plot3D1.repaint();
-}//GEN-LAST:event_jCheckBoxMenuItem5ActionPerformed
+private void show3DControlsMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_show3DControlsMIActionPerformed
+    simPanel1.set3DItemsVisible(show3DControlsMI.getState());
+}//GEN-LAST:event_show3DControlsMIActionPerformed
 
-private void jRadioButtonMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonMenuItem4ActionPerformed
-    mainVisuals1.setAnimationStyle(PointSet2D.ANIMATE_TRAIL);
-    mainVisuals3D1.setAnimationStyle(PointSet2D.ANIMATE_TRAIL);
-    plot2D1.repaint();
-    plot3D1.repaint();
-}//GEN-LAST:event_jRadioButtonMenuItem4ActionPerformed
+private void animateDrawPathsMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_animateDrawPathsMIActionPerformed
+    simPanel1.setAnimationStyle(AnimateLineStyle.ANIMATE_TRAIL);
+}//GEN-LAST:event_animateDrawPathsMIActionPerformed
 
-private void jRadioButtonMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonMenuItem5ActionPerformed
-    mainVisuals1.setAnimationStyle(PointSet2D.ANIMATE_DOT);
-    mainVisuals3D1.setAnimationStyle(PointSet2D.ANIMATE_DOT);
-    plot2D1.repaint();
-    plot3D1.repaint();
-}//GEN-LAST:event_jRadioButtonMenuItem5ActionPerformed
+private void animateMovingDotsMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_animateMovingDotsMIActionPerformed
+    simPanel1.setAnimationStyle(AnimateLineStyle.ANIMATE_DOT);
+}//GEN-LAST:event_animateMovingDotsMIActionPerformed
 
-private void jRadioButtonMenuItem6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonMenuItem6ActionPerformed
-    mainVisuals1.setAnimationStyle(PointSet2D.ANIMATE_TRACE);
-    mainVisuals3D1.setAnimationStyle(PointSet2D.ANIMATE_TRACE);
-    plot2D1.repaint();
-    plot3D1.repaint();
-}//GEN-LAST:event_jRadioButtonMenuItem6ActionPerformed
+private void animateTracePathsMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_animateTracePathsMIActionPerformed
+    simPanel1.setAnimationStyle(AnimateLineStyle.ANIMATE_TRACE);
+}//GEN-LAST:event_animateTracePathsMIActionPerformed
 
-private void jCheckBoxMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItem2ActionPerformed
-    mainVisuals1.setNetworkVisible(jCheckBoxMenuItem2.getState());
-    plot2D1.repaint();
-}//GEN-LAST:event_jCheckBoxMenuItem2ActionPerformed
+private void showCommMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showCommMIActionPerformed
+    simPanel1.setNetworkVisible(showCommMI.getState());
+}//GEN-LAST:event_showCommMIActionPerformed
 
-private void jCheckBoxMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItem1ActionPerformed
-    mainVisuals1.setPositionsVisible(jCheckBoxMenuItem1.getState());
-    mainVisuals3D1.setPositionsVisible(jCheckBoxMenuItem1.getState());
-    plot2D1.repaint();
-    plot3D1.repaint();
-}//GEN-LAST:event_jCheckBoxMenuItem1ActionPerformed
+private void showPositionLabelsMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showPositionLabelsMIActionPerformed
+    simPanel1.setPositionsVisible(showPositionLabelsMI.getState());
+}//GEN-LAST:event_showPositionLabelsMIActionPerformed
 
-private void jCheckBoxMenuItem6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItem6ActionPerformed
-    mainVisuals1.setStartVisible(jCheckBoxMenuItem6.getState());
-    mainVisuals3D1.setStartVisible(jCheckBoxMenuItem6.getState());
-    plot2D1.repaint();
-    plot3D1.repaint();
-}//GEN-LAST:event_jCheckBoxMenuItem6ActionPerformed
+private void showStartingMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showStartingMIActionPerformed
+    simPanel1.setStartVisible(showStartingMI.getState());
+}//GEN-LAST:event_showStartingMIActionPerformed
+
+private void duplicateMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_duplicateMenuItemActionPerformed
+    SimInternalFrame s2 = new SimInternalFrame("Copy");
+    s2.simPanel1.setSimulation(simulation1.copy());
+    s2.setBounds(20, 10, 802, 493);
+    jDesktopPane1.add(s2, javax.swing.JLayeredPane.DEFAULT_LAYER);
+}//GEN-LAST:event_duplicateMenuItemActionPerformed
+
+private void simulationComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_simulationComboBoxActionPerformed
+    addFrame(new simulation.Simulation(simulationComboBox.getSelectedIndex()));
+}//GEN-LAST:event_simulationComboBoxActionPerformed
+
+private void animateMovingTrianglesMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_animateMovingTrianglesMIActionPerformed
+    simPanel1.setAnimationStyle(AnimateLineStyle.ANIMATE_VEC);
+}//GEN-LAST:event_animateMovingTrianglesMIActionPerformed
     
     /**
      * @param args the command lineSegment arguments
@@ -776,68 +499,78 @@ private void jCheckBoxMenuItem6ActionPerformed(java.awt.event.ActionEvent evt) {
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JMenu ModeMenu;
-    private javax.swing.JButton addDotsButton;
+    private javax.swing.JRadioButtonMenuItem animateDrawPathsMI;
     private javax.swing.JMenuItem animateMenuItem;
+    private javax.swing.JRadioButtonMenuItem animateMovingDotsMI;
+    private javax.swing.JRadioButtonMenuItem animateMovingTrianglesMI;
+    private javax.swing.JRadioButtonMenuItem animateTracePathsMI;
+    private javax.swing.JMenu animationMenu;
+    private javax.swing.ButtonGroup animationStyleGroup;
     private javax.swing.JMenu appearanceMenu;
     private javax.swing.JButton batchButton;
-    private javax.swing.JTextArea codeWindow;
     private javax.swing.JButton cooperationButton;
-    private javax.swing.JTextArea dataWindow;
+    private javax.swing.JMenuItem duplicateMenuItem;
     private javax.swing.JMenu fileMenu;
-    private javax.swing.JTabbedPane infoPane;
-    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem1;
-    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem2;
-    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem3;
-    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem4;
-    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem5;
-    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem6;
+    private javax.swing.JDesktopPane jDesktopPane1;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JRadioButtonMenuItem jRadioButtonMenuItem1;
-    private javax.swing.JRadioButtonMenuItem jRadioButtonMenuItem2;
-    private javax.swing.JRadioButtonMenuItem jRadioButtonMenuItem3;
-    private javax.swing.JRadioButtonMenuItem jRadioButtonMenuItem4;
-    private javax.swing.JRadioButtonMenuItem jRadioButtonMenuItem5;
-    private javax.swing.JRadioButtonMenuItem jRadioButtonMenuItem6;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JToolBar.Separator jSeparator1;
-    private javax.swing.JSeparator jSeparator2;
-    private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JSeparator jSeparator4;
-    private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JToolBar jToolBar1;
-    private javax.swing.JTextArea logWindow;
-    private javax.swing.JTabbedPane mainViewPane;
-    private analysis.MainVisuals mainVisuals1;
-    private analysis.MainVisuals3D mainVisuals3D1;
-    private javax.swing.ButtonGroup menuSimModeGroup;
-    private analysis.MetricVisuals metricVisuals1;
-    private specto.euclidean2.Plot2D metricsPlot;
     private javax.swing.JMenuItem newMenuItem;
     private sequor.model.IntegerRangeModel numBatchRunsModel;
     private javax.swing.JSpinner numBatchRunsSpinner;
     private javax.swing.JMenuItem openMenuItem;
-    private javax.swing.ButtonGroup pathOptionsGroup;
-    private specto.euclidean2.Plot2D plot2D1;
-    private specto.euclidean3.Plot3D plot3D1;
     private javax.swing.JMenuItem quitMenuItem;
     private javax.swing.JButton randomizeButton;
     private javax.swing.JMenuItem randomizeMenuItem;
     private javax.swing.JMenuItem saveMenuItem;
-    private javax.swing.JMenu settingsMenu;
+    private javax.swing.JCheckBoxMenuItem show3DControlsMI;
+    private javax.swing.JCheckBoxMenuItem showAnimationControlsMI;
+    private javax.swing.JCheckBoxMenuItem showCommMI;
+    private javax.swing.JCheckBoxMenuItem showMarkerBoxMI;
+    private javax.swing.JCheckBoxMenuItem showPositionLabelsMI;
+    private javax.swing.JCheckBoxMenuItem showStartingMI;
+    private applications.SimPanel simPanel1;
     private simulation.Simulation simulation1;
     private javax.swing.JComboBox simulationComboBox;
     private javax.swing.JMenu simulationMenu;
-    private applications.SimulationSettingsPanel simulationSettingsPanel1;
-    private javax.swing.JButton startingPositionsButton;
     private javax.swing.JPanel statusBar;
     private javax.swing.JLabel statusText;
     // End of variables declaration//GEN-END:variables
+
+
+    private void addFrame(Simulation sim) {
+        SimInternalFrame sNew = new SimInternalFrame(sim.getName());
+        sNew.simPanel1.setSimulation(sim);        
+        jDesktopPane1.add(sNew);
+        sNew.addInternalFrameListener(new MyFrameListener());
+        jDesktopPane1.setSelectedFrame(sNew);
+        simulation1.update();
+    }
+
+    private class MyFrameListener extends javax.swing.event.InternalFrameAdapter {
+        @Override
+        public void internalFrameActivated(InternalFrameEvent e) {
+            simulation1 = ((SimInternalFrame)(e.getInternalFrame())).simPanel1.getSimulation();
+            simPanel1 = ((SimInternalFrame)(e.getInternalFrame())).simPanel1;
+            
+            simPanel1.set3DItemsVisible(show3DControlsMI.getState());
+            simPanel1.setAnimatorVisible(showAnimationControlsMI.getState());
+            simPanel1.setNetworkVisible(showCommMI.getState());
+            simPanel1.setMarkerBoxVisible(showMarkerBoxMI.getState());
+            simPanel1.setPositionsVisible(showPositionLabelsMI.getState());
+            simPanel1.setStartVisible(showStartingMI.getState());
+
+            if (animateDrawPathsMI.isSelected()) {
+                simPanel1.setAnimationStyle(AnimateLineStyle.ANIMATE_TRAIL);
+            } else if (animateTracePathsMI.isSelected()) {
+                simPanel1.setAnimationStyle(AnimateLineStyle.ANIMATE_TRACE);
+            } else if (animateMovingDotsMI.isSelected()) {
+                simPanel1.setAnimationStyle(AnimateLineStyle.ANIMATE_DOT);
+            } else if (animateMovingTrianglesMI.isSelected()) {
+                simPanel1.setAnimationStyle(AnimateLineStyle.ANIMATE_VEC);
+            }
+        }
+    }
 }

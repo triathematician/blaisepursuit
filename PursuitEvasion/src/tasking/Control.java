@@ -5,11 +5,6 @@
 
 package tasking;
 
-import simulation.Agent;
-import tasking.Tasking;
-import goal.Goal;
-import java.util.Vector;
-
 /**
  * @author Elisha Peterson
  * <br><br>
@@ -17,8 +12,4 @@ import java.util.Vector;
  * assigning a task to each player on a team.
  */
 public class Control extends Tasking {
-
-    public void assign(Vector<Agent> team, Goal goal,double weight) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 }

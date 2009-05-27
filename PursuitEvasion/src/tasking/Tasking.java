@@ -37,6 +37,7 @@ public class Tasking {
     public static final int FLEE = 2;
     public static final String[] TYPE_STRINGS = {"Seek", "Capture", "Flee"};
 
+    public static final int FIRST=0;
     public static final int NO_TASKING=0;
     public static final int AUTO_CLOSEST=1;
     public static final int AUTO_TWO_LINE=2;
@@ -46,6 +47,7 @@ public class Tasking {
     public static final int AUTO_GRADIENT=6;
     public static final int CONTROL_CLOSEST=7;
     public static final int CONTROL_OPTIMAL=8;
+    public static final int LAST=8;
     public static final String[] TASKING_STRINGS=
     {"None","Autonomous Closest","Autonomous Two Closest","Autonomous Farthest",
      "Autonomous Center-of-Mass","Autonomous Center-of-Directions",
@@ -60,8 +62,10 @@ public class Tasking {
 
     /** TaskGenerator which actually generates the goals, based on the setting here. */
     public TaskGenerator tasker;
+
     /** Whether or not the goal has been achieved. */
     private boolean achieved = false;
+
     /** The agent which achieved the goal. */
     private Agent which = null;
 

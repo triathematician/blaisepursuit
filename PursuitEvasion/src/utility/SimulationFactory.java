@@ -154,9 +154,9 @@ public class SimulationFactory {
     public static Vector<Team> threeTeamSimulation() {        
         // Teams
         Vector<Team> teams = new Vector<Team>();
-        Team sealTeam = new Team(); teams.add(sealTeam);
-        Team penguinTeam = new Team(); teams.add(penguinTeam);
-        Team fishTeam = new Team(); teams.add(fishTeam);
+        Team sealTeam = new Team();     teams.add(sealTeam);
+        Team penguinTeam = new Team();  teams.add(penguinTeam);
+        Team fishTeam = new Team();     teams.add(fishTeam);
         //                      ( NAME , # , STARTING POS , BEHAVIOR ALGORITHM , COLOR )
         sealTeam.initSettings("Seals", 3, Team.START_RANDOM, Behavior.LEADING, Color.BLUE);
         penguinTeam.initSettings("Penguins", 4, Team.START_RANDOM, Behavior.LEADING, Color.BLACK);
@@ -241,26 +241,27 @@ public class SimulationFactory {
     /** Exploration of flocking */
     public static Vector<Team> flockSimulation() {
         Vector<Team> teams = new Vector<Team>();
-        Team flock = new Team(); teams.add(flock);
+        Team flock = new Team();    teams.add(flock);
         Team predator = new Team(); teams.add(predator);
         Team obstacle = new Team(); teams.add(obstacle);
+
         flock.initSettings("Flock", 25, Team.START_RANDOM, Behavior.STRAIGHT, Color.BLUE);
         flock.setSensorRange(50.0);
         flock.setCommRange(0.0);
+        predator.initSettings("Predator", 4, Team.START_RANDOM, Behavior.LEADING, Color.RED.darker());
+        predator.setTopSpeed(6);
+        predator.setSensorRange(55.0);
+        predator.setCommRange(150.0);
+        obstacle.initSettings("Obstacle", 4, Team.START_RANDOM, Behavior.STATIONARY, Color.DARK_GRAY);
+
         flock.addTasking(.5, teams, flock, Tasking.FLEE, Tasking.AUTO_CLOSEST, 1);
         flock.addTasking(.4, teams, flock, Tasking.SEEK, Tasking.AUTO_COM, 1);
         flock.addTasking(.7, teams, flock, Tasking.SEEK, Tasking.AUTO_DIR_COM, 1);
         flock.addTasking(1, teams, predator, Tasking.FLEE, Tasking.AUTO_GRADIENT, 1);
         flock.addTasking(.5, teams, obstacle, Tasking.FLEE, Tasking.AUTO_CLOSEST, 1);
         
-        predator.initSettings("Predator", 4, Team.START_RANDOM, Behavior.LEADING, Color.RED.darker());
-        predator.setTopSpeed(6);
-        predator.setSensorRange(55.0);
-        predator.setCommRange(150.0);
         predator.addTasking(1, teams, flock, Tasking.CAPTURE, Tasking.AUTO_CLOSEST, 2.0);
-        predator.addTasking(.7, teams, obstacle, Tasking.FLEE, Tasking.AUTO_CLOSEST, 1);
-        
-        obstacle.initSettings("Obstacle", 4, Team.START_RANDOM, Behavior.STATIONARY, Color.DARK_GRAY);
+        predator.addTasking(.7, teams, obstacle, Tasking.FLEE, Tasking.AUTO_CLOSEST, 1);        
         
         predator.addCaptureCondition(teams, flock, 1.0, CaptureCondition.REMOVETARGET);
         

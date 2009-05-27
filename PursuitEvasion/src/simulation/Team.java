@@ -46,11 +46,14 @@ public class Team implements ActionListener {
     //
         
     /** Global team settings */
-    public TeamSettings tes;    
+    public TeamSettings tes;
+
     /** Agent settings */
-    public Settings ags;    
+    public Settings ags;
+
     /** Metrics settings group */
-    public Settings mets;    
+    public Settings mets;
+
     /** Tasking settings group */
     public Settings tass;
 
@@ -59,15 +62,18 @@ public class Team implements ActionListener {
         
     /** The agents on the team. */
     public Vector<Agent> agents;
+
     /** Control agent. */
     private Agent control;
     
     /** Capture conditions of the team. */
     @XmlElement(name="capture")
     public Vector<CaptureCondition> capture;
+
     /** Victory condition of the team. */
     @XmlElement(name="victory")
     public VictoryCondition victory;
+    
     /** Value metrics of the team. */
     @XmlElement(name="metric")
     public Vector<Valuation> metrics;    
@@ -107,7 +113,14 @@ public class Team implements ActionListener {
     /** Initializes based on another team's settings. */    
     public Team(Team t2) {
         initControlVariables();
-        tes = t2.tes;
+        setAgentNumber(t2.getAgentNumber());
+        setBehavior(t2.getBehavior());
+        setColor(t2.getColor());
+        // TODO  ...
+        setSensorRange(t2.getSensorRange());
+        capture = t2.capture;
+        victory = t2.victory;
+        metrics = t2.metrics;
         initStateVariables();
         initAgentNumber();
     }
@@ -281,10 +294,23 @@ public class Team implements ActionListener {
         }
         editing = false;
     }
-    
-    
+
+
+    // ACCESSOR METHODS
+
+    /** Returns size, via list of agents. */
+    public int size() {
+        return agents.size();
+    }
+
+    /** Returns ith agent. */
+    public Agent get (int i) {
+        return agents.get(i);
+    }
+
+
     // BEAN PATTERNS: GETTERS & SETTERS
-    
+
     /** Returns center of mass of the team
      * @return center of mass */
     public R2 getCenterOfMass() {
@@ -340,17 +366,17 @@ public class Team implements ActionListener {
     
     /** Instructs all agents to gather sensory data
      * @param d The global table of distances */
-    public void gatherSensoryData(DistanceTable d) {
+    public void gatherSensoryData(DistanceTable dt) {
         for (Agent a : activeAgents) {
-            a.gatherSensoryData(d);
+            a.gatherSensoryData(dt);
         }
     }
 
     /** Instructs all agents to generate communication events for other players
      * @param d The global table of distances */
-    public void communicateSensoryData(DistanceTable d) {
+    public void communicateSensoryData(DistanceTable dt) {
         for (Agent a : activeAgents) {
-            a.generateSensoryEvents(this, d);
+            a.generateSensoryEvents(this, dt);
         }
     }
 
@@ -362,10 +388,14 @@ public class Team implements ActionListener {
     }
 
     /** Assigns tasks to the agents. */
-    public void assignTasks(DistanceTable table) {
-        for (Agent a : activeAgents) { a.tasks.clear(); }
-        control.generateTasks(this, table, 1.0);
-        for (Agent a : activeAgents) { a.generateTasks(this, table, 1.0); }
+    public void assignTasks(DistanceTable dt) {
+        for (Agent a : activeAgents) { 
+            a.tasks.clear();
+        }
+        control.generateTasks(this, dt, 1.0);
+        for (Agent a : activeAgents) { 
+            a.generateTasks(this, dt, 1.0);
+        }
     }
 
     /** Generates directions for each team member based on their task and myBehavior.
@@ -534,6 +564,7 @@ public class Team implements ActionListener {
     public void setColorModel(ColorModel cm) { tes.color.copyValuesFrom(cm); }    
     
     public void setColorValue(Color newValue) { tes.color.setValue(newValue); }
+    public Color getColorValue() { return tes.color.getValue(); }
 
     //    public Collection<Goal> getGoals(){return goals;}
     
@@ -553,8 +584,23 @@ public class Team implements ActionListener {
         tes.pm.setYString(yt);
     }
 
+    /** Returns panel corresponding to the team settings. */
     public JPanel getPanel() {
         return tes.getPanel();
+    }
+
+    /** Returns a copy of the team.
+     * @param sameStart whether copy keeps the structure of the agent starting locations or not
+     * @return team
+     */
+    public Team copy(boolean sameStart) {
+        Team result = new Team(this);
+        if (sameStart) {
+            for (int i = 0; i < result.agents.size(); i++) {
+                result.get(i).setPointModel(get(i).getPointModel());
+            }
+        }
+        return result;
     }
     
     // BROADCAST METHODS: CHANGE SETTINGS OF AGENTS ON TEAM

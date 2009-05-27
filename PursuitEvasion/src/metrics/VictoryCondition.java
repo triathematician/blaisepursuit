@@ -65,7 +65,7 @@ public class VictoryCondition extends Valuation {
      */
     public int check(DistanceTable dt,CaptureMap cap,SimulationLog log,double time){
         //System.out.println("value: "+getValue(dt)+", thresh: "+getThreshold()+", more: "+moreResult+", less: "+lessResult);
-        int result = getValue(dt,cap) >= getThreshold() ? getMoreResult() : getLessResult();
+        int result = getValue(dt, cap) >= getThreshold() ? getMoreResult() : getLessResult();
         if(triggered) { return result; }
         switch (result) {
             case NEITHER:

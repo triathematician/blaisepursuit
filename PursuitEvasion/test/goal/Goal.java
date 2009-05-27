@@ -12,8 +12,9 @@ import java.beans.PropertyChangeEvent;
 import javax.swing.JPanel;
 import javax.swing.event.EventListenerList;
 import scio.function.Function;
-import sequor.component.Settings;
-import sequor.model.ComboBoxRangeModel;
+import scio.function.FunctionAdapter;
+import sequor.Settings;
+import sequor.model.StringRangeModel;
 import simulation.Team;
 import simulation.Agent;
 import tasking.Tasking;
@@ -29,7 +30,7 @@ import utility.DistanceTable;
  * <br><br>
  * @author Elisha Peterson
  */
-public class Goal implements Function<DistanceTable,Double>{
+public class Goal extends FunctionAdapter<DistanceTable,Double>{
         
     // PROPERTIES
     
@@ -62,7 +63,7 @@ public class Goal implements Function<DistanceTable,Double>{
      */
     public Goal(double weight,Team owner,Team target,int type,double thresh){
         gs=new GoalSettings(weight,owner,target,type,thresh);
-        tasker=gs.getTasking();
+        tasker = gs.getTasking();
         addActionListener(owner);
     }
         
@@ -78,7 +79,7 @@ public class Goal implements Function<DistanceTable,Double>{
      * Assigns tasks to team based upon the tasking algorithm.
      */
     public void assignTasks(){
-        tasker.assign(gs.owner,this,getWeight());
+        tasker.generate(gs.owner.getActiveAgents(), this, getWeight());
     }
     
     /** 
@@ -97,7 +98,7 @@ public class Goal implements Function<DistanceTable,Double>{
      * @return      numeric value indicating the closeness to the goal (positive if goal has been reached, otherwise negative) 
      */
     public Double getValue(DistanceTable d){
-        AgentPair result=d.min(getOwner(),getTarget());
+        AgentPair result=d.min(getOwner().agents, getTarget().agents);
         double dist=getThreshhold()-result.getDistance();
         if(getType()==FLEE){dist=-dist;}
         if(dist>0&&!achieved){which=result.getFirst();}
@@ -117,18 +118,7 @@ public class Goal implements Function<DistanceTable,Double>{
         return false;
     }    
     
-    
-    // UNSUPPORTED OPERATIONS
-
-    public Double minValue() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public Double maxValue() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-    
-    
+      
     // BEAN PATTERNS  
     
     public int getType(){return gs.type.getValue();}
@@ -179,7 +169,7 @@ public class Goal implements Function<DistanceTable,Double>{
         /** Specifies the weighting/priority of the goal. */
         private DoubleRangeModel weight=new DoubleRangeModel(0,1,.01);
         /** Specifies whether goal is pursuit (0) or evade (1). */
-        private ComboBoxRangeModel type=new ComboBoxRangeModel(TYPE_STRINGS,SEEK,0,1);
+        private StringRangeModel type=new StringRangeModel(TYPE_STRINGS,SEEK,0,1);
         /** 
          * Another parameter to use in specifying the goal. Usually the "target"
          * distance required to reach the goal.
@@ -187,7 +177,7 @@ public class Goal implements Function<DistanceTable,Double>{
         private DoubleRangeModel threshhold=new DoubleRangeModel(0,1,.01);
 
         /** The team's tasking algorithm default */
-        private ComboBoxRangeModel tasking=new ComboBoxRangeModel(Tasking.TASKING_STRINGS,Tasking.AUTO_CLOSEST,Tasking.FIRST,Tasking.LAST);
+        private StringRangeModel tasking=new StringRangeModel(Tasking.TASKING_STRINGS,Tasking.AUTO_CLOSEST,Tasking.FIRST,Tasking.LAST);
 
         /** Specifies the function describing whether the goal has been achieved. */
         private Function<DistanceTable,Double> value;

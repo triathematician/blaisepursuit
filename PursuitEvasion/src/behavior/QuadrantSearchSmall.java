@@ -1,6 +1,6 @@
 /*
- * Straight.java 
- * Created on Aug 28, 2007, 11:21:25 AM
+ * QuadrantSearchSmall.java
+ * Created June 2008
  */
 package behavior;
 
@@ -9,7 +9,7 @@ import scio.coordinate.R2;
 import scio.coordinate.V2;
 
 /**
- * @author Elisha Peterson<br><br>
+ * @author Lucas Gebhart
  * 
  * Behavior moving directly towards the origin and then circling with sensor radius circles, searching for targets
  */
@@ -28,7 +28,6 @@ public class QuadrantSearchSmall extends behavior.Behavior {
         double x = 0.0;
         double y = 0.0;
 
-
         if (target == null) {
             if (self.loc.magnitude() < 1) {
                 start++;
@@ -43,16 +42,16 @@ public class QuadrantSearchSmall extends behavior.Behavior {
            // once the agent is at the origin it travels on an assigned path, allowing the team to cover the map.
               // this is step one
                 if (counter >= 0 && counter < self.getSensorRange()/(self.getTopSpeed()*.1)) {
-                    if (self.toString().equals("Agent 1")) {
+                    if (self.toString().equals("L1")) {
                         x = self.getSensorRange();
                         y = 0;
-                    } else if (self.toString().equals("Agent 2")) {
+                    } else if (self.toString().equals("L2")) {
                         x = 0;
                         y = self.getSensorRange();
-                    } else if (self.toString().equals("Agent 3")) {
+                    } else if (self.toString().equals("L3")) {
                         x = -self.getSensorRange();
                         y = 0;
-                    } else if (self.toString().equals("Agent 4")) {
+                    } else if (self.toString().equals("L4")) {
                         x = 0;
                         y = -self.getSensorRange();
                     }
@@ -60,19 +59,19 @@ public class QuadrantSearchSmall extends behavior.Behavior {
                 }
          // step 2 of the search in an assigned quadrant       
                 else if(counter>=self.getSensorRange()/(self.getTopSpeed()*.1) && counter < (self.getSensorRange()/(self.getTopSpeed()*.1)+(.5*Math.PI * self.getSensorRange()) / (self.getTopSpeed() * .1))) {
-                    if (self.toString().equals("Agent 1")) {
+                    if (self.toString().equals("L1")) {
                         x = (.5 * self.getSensorRange()) * Math.sin(((counter-(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (.5 * self.getSensorRange())- Math.PI);
 
                         y = .5 * self.getSensorRange() - (.5 * self.getSensorRange()) * Math.cos(((counter-(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (.5 * self.getSensorRange())-Math.PI);
-                    } else if (self.toString().equals("Agent 2")) {
+                    } else if (self.toString().equals("L2")) {
                         x = -(.5 * self.getSensorRange()) * Math.sin(((counter-(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (.5 * self.getSensorRange()));
 
                         y = -.5 * self.getSensorRange() + (.5 * self.getSensorRange()) * Math.cos(((counter-(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (.5 * self.getSensorRange()));
-                    } else if (self.toString().equals("Agent 3")) {
+                    } else if (self.toString().equals("L3")) {
                        x = (.5 * self.getSensorRange()) * Math.sin(((counter-(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (.5 * self.getSensorRange()));
 
                         y = -.5 * self.getSensorRange() + (.5 * self.getSensorRange()) * Math.cos(((counter-(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (.5 * self.getSensorRange())-Math.PI);
-                    } else if (self.toString().equals("Agent 4")) {
+                    } else if (self.toString().equals("L4")) {
                        x = (.5 * self.getSensorRange()) * Math.sin(((counter-(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (.5 * self.getSensorRange()));
 
                         y = .5 * self.getSensorRange() - (.5 * self.getSensorRange()) * Math.cos(((counter-(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (.5 * self.getSensorRange()));
@@ -82,16 +81,16 @@ public class QuadrantSearchSmall extends behavior.Behavior {
               
             // step 3 of the quadrant search algorithm
                 else if (counter >= (self.getSensorRange()/(self.getTopSpeed()*.1)+(.5*Math.PI * self.getSensorRange()) / (self.getTopSpeed() * .1)) && counter < (2*(self.getSensorRange()/(self.getTopSpeed()*.1))+(.5*Math.PI * self.getSensorRange()) / (self.getTopSpeed() * .1))){
-                    if (self.toString().equals("Agent 1")) {
+                    if (self.toString().equals("L1")) {
                         x = 0;
                         y = self.getSensorRange();
-                    } else if (self.toString().equals("Agent 2")) {
+                    } else if (self.toString().equals("L2")) {
                         x = -self.getSensorRange();
                         y = 0;
-                    } else if (self.toString().equals("Agent 3")) {
+                    } else if (self.toString().equals("L3")) {
                         x = 0;
                         y = -self.getSensorRange();
-                    } else if (self.toString().equals("Agent 4")) {
+                    } else if (self.toString().equals("L4")) {
                         x = self.getSensorRange();
                         y = 0;
                     }
@@ -100,19 +99,19 @@ public class QuadrantSearchSmall extends behavior.Behavior {
                 
             // step 4 of the quadrant search algorithm    
                 else if (counter >= (2*(self.getSensorRange()/(self.getTopSpeed()*.1))+(.5*Math.PI * self.getSensorRange()) / (self.getTopSpeed() * .1)) && counter < (2*(self.getSensorRange()/(self.getTopSpeed()*.1))+(1.5*Math.PI * self.getSensorRange()) / (self.getTopSpeed() * .1))){
-                    if (self.toString().equals("Agent 1")) {
+                    if (self.toString().equals("L1")) {
                         x = ( -2*self.getSensorRange()) * Math.sin(((counter-2*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (self.getSensorRange())- 1.5*Math.PI);
 
                         y = -2*(self.getSensorRange())+(-2*self.getSensorRange()) * Math.cos(((counter-2*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / ( self.getSensorRange())-1.5*Math.PI);
-                    }  else if(self.toString().equals("Agent 2")) {
+                    }  else if(self.toString().equals("L2")) {
                        x = ( 2*self.getSensorRange()) * Math.sin(((counter-2*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (self.getSensorRange())- .5*Math.PI);
 
                         y = 2*(self.getSensorRange())+(2*self.getSensorRange()) * Math.cos(((counter-2*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / ( self.getSensorRange())-.5*Math.PI);
-                    } else if (self.toString().equals("Agent 3")) {
+                    } else if (self.toString().equals("L3")) {
                         x = ( -2*self.getSensorRange()) * Math.sin(((counter-2*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (self.getSensorRange())- .5*Math.PI);
 
                         y = 2*(self.getSensorRange())+(-2*self.getSensorRange()) * Math.cos(((counter-2*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / ( self.getSensorRange())-.5*Math.PI);
-                    } else if (self.toString().equals("Agent 4")) {
+                    } else if (self.toString().equals("L4")) {
                         x = ( -2*self.getSensorRange()) * Math.sin(((counter-2*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (self.getSensorRange())- .5*Math.PI);
 
                         y = -2*(self.getSensorRange())+(-2*self.getSensorRange()) * Math.cos(((counter-2*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / ( self.getSensorRange())-.5*Math.PI);
@@ -123,16 +122,16 @@ public class QuadrantSearchSmall extends behavior.Behavior {
                 
                 //step 5 of the quadrant search algorithm
                 else if (counter >= (2*(self.getSensorRange()/(self.getTopSpeed()*.1))+(1.5*Math.PI * self.getSensorRange()) / (self.getTopSpeed() * .1)) && counter < (3*(self.getSensorRange()/(self.getTopSpeed()*.1))+(1.5*Math.PI * self.getSensorRange()) / (self.getTopSpeed() * .1))){
-                    if (self.toString().equals("Agent 1")) {
+                    if (self.toString().equals("L1")) {
                         x = self.getSensorRange();
                         y = 0;
-                    } else if (self.toString().equals("Agent 2")) {
+                    } else if (self.toString().equals("L2")) {
                         x = 0;
                         y = self.getSensorRange();
-                    } else if (self.toString().equals("Agent 3")) {
+                    } else if (self.toString().equals("L3")) {
                         x = -self.getSensorRange();
                         y = 0;
-                    } else if (self.toString().equals("Agent 4")) {
+                    } else if (self.toString().equals("L4")) {
                         x = 0;
                         y = -self.getSensorRange();
                     }
@@ -141,19 +140,19 @@ public class QuadrantSearchSmall extends behavior.Behavior {
                 
                 // step 6 of the quadrant search algorithm
                 else if (counter >= (3*(self.getSensorRange()/(self.getTopSpeed()*.1))+(1.5*Math.PI * self.getSensorRange()) / (self.getTopSpeed() * .1)) && counter < (3*(self.getSensorRange()/(self.getTopSpeed()*.1))+(3*Math.PI * self.getSensorRange()) / (self.getTopSpeed() * .1))){
-                    if (self.toString().equals("Agent 1")) {
+                    if (self.toString().equals("L1")) {
                         x = ( -3*self.getSensorRange()) * Math.sin(((counter-3*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (3*self.getSensorRange())- .5*Math.PI);
 
                         y = (3*self.getSensorRange()) * Math.cos(((counter-3*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / ( 3*self.getSensorRange())-.5*Math.PI);
-                    }  else if(self.toString().equals("Agent 2")) {
+                    }  else if(self.toString().equals("L2")) {
                        x = ( 3*self.getSensorRange()) * Math.sin(((counter-3*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (3*self.getSensorRange())- 1*Math.PI);
 
                         y = (-3*self.getSensorRange()) * Math.cos(((counter-3*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / ( 3*self.getSensorRange())-1*Math.PI);
-                    } else if (self.toString().equals("Agent 3")) {
+                    } else if (self.toString().equals("L3")) {
                         x = ( 3*self.getSensorRange()) * Math.sin(((counter-3*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (3*self.getSensorRange())- .5*Math.PI);
 
                         y = (-3*self.getSensorRange()) * Math.cos(((counter-3*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / ( 3*self.getSensorRange())-.5*Math.PI);
-                    } else if (self.toString().equals("Agent 4")) {
+                    } else if (self.toString().equals("L4")) {
                         x = ( -3*self.getSensorRange()) * Math.sin(((counter-3*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / (3*self.getSensorRange())- 1*Math.PI);
 
                         y = (3*self.getSensorRange()) * Math.cos(((counter-3*(self.getSensorRange()/(self.getTopSpeed()*.1))) * self.getTopSpeed() * .1) / ( 3*self.getSensorRange())-1*Math.PI);

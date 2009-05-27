@@ -5,7 +5,6 @@
 
 package utility;
 
-import goal.Goal;
 import java.awt.Graphics2D;
 import java.awt.geom.Path2D;
 import javax.swing.JMenu;
@@ -15,13 +14,16 @@ import specto.Animatable;
 import specto.Plottable;
 import sequor.component.RangeTimer;
 import scio.coordinate.R2;
-import specto.dynamicplottable.PointSet2D;
-import specto.visometry.Euclidean2;
+import sequor.style.LineStyle;
+import specto.Visometry;
+import specto.euclidean2.Euclidean2;
+import tasking.Tasking;
 
 /**
+ * <p>
  * Displays team communication graph at a given time.
  * Does this using the pre-computed paths in conjunction with comm distances.
- * <br><br>
+ * </p>
  * @author ae3263
  */
 public class DynamicTeamGraph extends Plottable<Euclidean2> implements Animatable {
@@ -33,24 +35,25 @@ public class DynamicTeamGraph extends Plottable<Euclidean2> implements Animatabl
     public int pathSize(){
         return log.size();
     }
-    
-    public void paintComponent(Graphics2D g) {
+
+    @Override
+    public void paintComponent(Graphics2D g, Euclidean2 v) {
     }
 
     /** Draws graph corresponding to current step. */
-    public void paintComponent(Graphics2D g, RangeTimer t){
+    public void paintComponent(Graphics2D g, Visometry v, RangeTimer t) {
         if(pathSize()==0){return;}
-        g.setStroke(PointSet2D.VERY_DOTTED_STROKE);
-        g.setColor(team.getColor().brighter().brighter());
-        g.draw(getEdges(t.getCurrentStep()));
-        for(Goal goal:team.getGoals()){
-            g.draw(getTargetEdges(goal,t.getCurrentStep()));
+        g.setStroke(LineStyle.STROKES[LineStyle.DOTTED]);
+        g.setColor(team.getColorValue().brighter().brighter());
+        g.draw(getEdges((Euclidean2) v, t.getCurrentIntValue()));
+        for (Tasking tk : team.getTaskings()) {
+            g.draw(getTargetEdges((Euclidean2) v, tk, t.getCurrentIntValue()));
         }
     }   
     
     
     /** Checks each pair of agents against team's range parameter, returns draw element. */    
-    public Path2D.Double getEdges(int time){
+    public Path2D.Double getEdges(Euclidean2 visometry, int time){
         int timeB=time<0?0:(time>=pathSize()?pathSize()-1:time);
         Path2D.Double result=new Path2D.Double();
         R2 p1;
@@ -69,15 +72,18 @@ public class DynamicTeamGraph extends Plottable<Euclidean2> implements Animatabl
     } 
     
     /** Gets edges for each target in range. */
-    public Path2D.Double getTargetEdges(Goal g,int time){
-        if(g.getTarget()==null){return new Path2D.Double();}
-        int timeB=time<0?0:(time>=pathSize()?pathSize()-1:time);
+    public Path2D.Double getTargetEdges(Euclidean2 visometry, Tasking tk, int time){
+        if(tk.getTarget()==null){return new Path2D.Double();}
+        int timeB =
+                time < 0 ? 0 : (
+                  time >= pathSize() ? pathSize()-1 : time
+                );
         Path2D.Double result=new Path2D.Double();
         R2 p1;
         R2 p2;
         for(int i=0;i<team.size();i++){
             p1=log.agentAt(team.get(i),timeB);
-            for(Agent a:g.getTarget()){
+            for(Agent a: tk.getTarget().getAgents()){
                 p2=log.agentAt(a,timeB);
                 if(p1.distance(p2)<team.getSensorRange()){
                     result.moveTo(visometry.toWindowX(p1.x),visometry.toWindowY(p1.y));
@@ -94,4 +100,24 @@ public class DynamicTeamGraph extends Plottable<Euclidean2> implements Animatabl
 
     public void recompute() {
     }
+
+    @Override
+    public String[] getStyleStrings() {
+        String[] result = {};
+        return result;
+    }
+
+    public int getAnimatingSteps() { return 0; }
+
+
+    boolean animating = true;
+
+    public void setAnimationOn(boolean newValue) {
+        this.animating = newValue;
+    }
+
+    public boolean isAnimationOn() {
+        return animating;
+    }
+
 }

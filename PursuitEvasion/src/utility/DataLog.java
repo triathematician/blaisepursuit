@@ -11,7 +11,7 @@ import simulation.Agent;
 import simulation.Simulation;
 import simulation.Team;
 import scio.coordinate.R2;
-import specto.dynamicplottable.PointSet2D;
+import specto.euclidean2.PointSet2D;
 
 /**
  * Logs data from a simulation's run. Can be used to plot various results.
@@ -34,7 +34,7 @@ public class DataLog {
     
     /** Called when the simulation is first initialized. */
     public void initialize(Team t){
-        for(Agent a:t){
+        for(Agent a:t.agents){
             agentPaths.put(a,new Vector<R2>());
         }
         teamValues.put(t,new Vector<R2>());
@@ -51,7 +51,7 @@ public class DataLog {
     public Vector<PointSet2D> getPlotPaths(){
         Vector<PointSet2D> result=new Vector<PointSet2D>();
         for(Agent a:agentPaths.keySet()){
-            result.add(new PointSet2D(agentPaths.get(a),a.getColor()));
+            result.add(new PointSet2D(agentPaths.get(a), a.getColorValue()));
         }
         return result;
     }
@@ -60,7 +60,7 @@ public class DataLog {
     public Vector<PointSet2D> getValuePlots(){
         Vector<PointSet2D> result=new Vector<PointSet2D>();
         for(Team t:teamValues.keySet()){
-            result.add(new PointSet2D(teamValues.get(t),t.getColor()));
+            result.add(new PointSet2D(teamValues.get(t), t.getColorValue()));
         }
         return result;
     }
@@ -80,9 +80,9 @@ public class DataLog {
         for(Agent a:agentPaths.keySet()){
             agentPaths.get(a).add(new R2(a.getPosition()));
         }
-        for(Team t:teamValues.keySet()){
-            teamValues.get(t).add(new R2(timeStep,t.getValue()));
-        }
+       // for(Team t:teamValues.keySet()){
+       //     teamValues.get(t).add(new R2(timeStep, t.getValue()));
+       // }
     }
     
     /** Logs captures within a specified distance. Deactivates these agents. */

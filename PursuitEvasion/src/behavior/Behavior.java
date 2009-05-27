@@ -47,7 +47,7 @@ public abstract class Behavior {
     };
 
     public static StringRangeModel getComboBoxModel(){
-        return new StringRangeModel(BEHAVIOR_STRINGS,STATIONARY,0,9);
+        return new StringRangeModel(BEHAVIOR_STRINGS, STATIONARY, 0, 9);
     }
     
 // CONSTRUCTORS    
@@ -82,5 +82,5 @@ public abstract class Behavior {
      * @param target    the agent targeted by the behavior
      * @param t         the current time stamp
      * @return          the direction of travel corresponding to this behavior */
-    public abstract R2 direction(Agent self,V2 target,double t);
+    public abstract R2 direction(Agent self, V2 target, double time);
 }

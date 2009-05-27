@@ -17,7 +17,7 @@ import specto.Plottable;
 import scio.coordinate.R2;
 import scio.graph.Graph;
 import sequor.component.RangeTimer;
-import sequor.style.VisualStyle;
+import sequor.style.LineStyle;
 import specto.euclidean2.Euclidean2;
 
 /**
@@ -45,7 +45,7 @@ public class DynamicTeamGraph extends Plottable<Euclidean2> implements Animatabl
     /** Draws graph corresponding to current step. */
     public void paintComponent(Graphics2D g,Euclidean2 v,RangeTimer t){
         if(pathSize()==0){return;}
-        g.setStroke(VisualStyle.THIN_STROKE);
+        g.setStroke(LineStyle.STROKES[LineStyle.THIN]);
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,0.5f));
         g.draw(getEdges(v,t.getCurrentIntValue()));
         for(CaptureCondition cc:team.capture){
