@@ -1,6 +1,11 @@
 #summary This page contains a summary of new features and changes which have been made to the platform since early Summer 2008.
 #labels Featured
 
+==== May 2009 ====
+ * _Adjusted main window to allow for multiple simulation panels._ --EP
+ * _Added option to display agents as moving triangles._ --EP
+ * _Made significant update to wiki entry on the iteration process._ --EP
+
 ==== Mar 2009 ====
  * _Added ability to add/remove items from the simulation via the tree (almost complete)._ --EP
  * _Added detailed description of XML format to this wiki._ --EP
