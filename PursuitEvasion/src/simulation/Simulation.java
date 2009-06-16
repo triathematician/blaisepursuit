@@ -321,7 +321,7 @@ public class Simulation implements ActionListener {
         double time=0;
         for(int i=0;i<numSteps;i++){
             time = i*getStepTime();
-            quit = iterate(time);
+            quit = iterate(i, time);
             log.logAll(i, dist, cap);
             if(quit){break;}
         }
@@ -331,7 +331,7 @@ public class Simulation implements ActionListener {
     }
     
     /** Runs a single iteration of the scenario */
-    public boolean iterate(double time){
+    public boolean iterate(int curStep, double time){
         
         // Step 1. Recalculate the table of distances
         dist.recalculate(time);
@@ -357,7 +357,9 @@ public class Simulation implements ActionListener {
 //        for(Team t:teams){
 //           t.checkGoal(dist,time);
 //        }
-        
+
+       // if (curStep % 50 == 0) {
+
         // Step 4. Collect/communicate data
         for(Team t:teams){
 //            if(!t.getGoals().isEmpty()){
@@ -373,7 +375,9 @@ public class Simulation implements ActionListener {
                 t.assignTasks(dist);
 //            }
         }
-        
+
+     //   }
+
         // Step 6. Fuse tasks
         for(Team t:teams){
             t.planPaths(time, getStepTime());

@@ -11,15 +11,17 @@ import scio.coordinate.R2;
 import tasking.Tasking;
 
 /**
+ * <p>
  * This class will eventually handle the job of fusing together multiple & possibly
  * conflicting taskings, e.g. head towards goal G while avoiding player P.
- * <br><br>
+ * </p>
+ * <p>
  * There are a few ways to do this. One is the "breach of radii" technique, whereby
  * the task is dependent on the distanceTo to goal. Another is the "gradient" technique,
  * whereby the gradient is computed in order to minimize/maximize the total distanceTo
  * to goal.
- * <br><br>
- * @author ae3263
+ * </p>
+ * @author Elisha Peterson
  */
 public class TaskFusion {
 
@@ -43,7 +45,7 @@ public class TaskFusion {
             multiplier = (t.getTaskType() == Tasking.FLEE ? -1 : 1) * (agent.getBehaviorCode() == Behavior.REVERSE ? -1 : 1);
             // scales the result by the task priority
             result.translateBy(agent.getBehavior().direction(agent, t.getTarget(), time)
-                    .multipliedBy(multiplier * t.getPriority()));
+                    .multipliedBy(multiplier * t.getWeight()));
         }
         return result.normalized();
     }

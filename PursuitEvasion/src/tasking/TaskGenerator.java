@@ -11,7 +11,9 @@ import simulation.Team;
 import utility.DistanceTable;
 
 /**
+ * <p>
  * Abstract class with routines for generating tasks.
+ * </p>
  * @author Elisha Peterson
  */
 public abstract class TaskGenerator {
@@ -25,7 +27,7 @@ public abstract class TaskGenerator {
         this.type=type;
     }
 
-    public abstract void generate(Collection<Agent> team, DistanceTable dt, double priority);
+    public abstract void generate(Collection<Agent> team, DistanceTable dt, double weight, double threshold, double exponent);
 
     public void setTarget(Team target) {
         this.target = target;

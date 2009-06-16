@@ -191,7 +191,11 @@ public class PEGPlot extends javax.swing.JFrame {
 
         newMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
         newMenuItem.setText("New Simulation");
-        newMenuItem.setEnabled(false);
+        newMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                newMenuItemActionPerformed(evt);
+            }
+        });
         fileMenu.add(newMenuItem);
 
         openMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
@@ -486,6 +490,10 @@ private void simulationComboBoxActionPerformed(java.awt.event.ActionEvent evt) {
 private void animateMovingTrianglesMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_animateMovingTrianglesMIActionPerformed
     simPanel1.setAnimationStyle(AnimateLineStyle.ANIMATE_VEC);
 }//GEN-LAST:event_animateMovingTrianglesMIActionPerformed
+
+private void newMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newMenuItemActionPerformed
+    addFrame(new Simulation());
+}//GEN-LAST:event_newMenuItemActionPerformed
     
     /**
      * @param args the command lineSegment arguments
@@ -545,8 +553,8 @@ private void animateMovingTrianglesMIActionPerformed(java.awt.event.ActionEvent 
         sNew.simPanel1.setSimulation(sim);        
         jDesktopPane1.add(sNew);
         sNew.addInternalFrameListener(new MyFrameListener());
-        jDesktopPane1.setSelectedFrame(sNew);
         simulation1.update();
+        jDesktopPane1.setSelectedFrame(sNew);
     }
 
     private class MyFrameListener extends javax.swing.event.InternalFrameAdapter {

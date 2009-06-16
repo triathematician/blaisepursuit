@@ -167,7 +167,7 @@ public class Agent {
 
     public void generateTasks(Team team, DistanceTable dt, double priority) {
         for(Tasking tag:taskings){
-            tag.tasker.generate(team.getActiveAgents(), dt, tag.getWeight()*priority);
+            tag.tasker.generate(team.getActiveAgents(), dt, tag.getWeight()*priority, tag.getThreshhold(), tag.getExponent());
         }
     }
     

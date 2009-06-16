@@ -107,9 +107,9 @@ public class SimulationFactory {
                 Valuation.DIST_MIN, 5.0, VictoryCondition.NEITHER, VictoryCondition.WON, false));
 
         // Goals (Taskings)
-        //                      ( WEIGHT, TEAMS, OPPONENT, SEEK/FLEE/CAPTURE? , TASKING ALGORITHM , GOAL THRESHOLD )
-        bugTeam.addTasking(1.0, teams, lightTeam, Tasking.SEEK, Tasking.AUTO_CLOSEST, 1.0);
-        lightTeam.addTasking(1.0, teams, bugTeam, Tasking.FLEE, Tasking.AUTO_GRADIENT, 1.0);
+        //                      ( WEIGHT, TEAMS, OPPONENT, SEEK/FLEE/CAPTURE? , TASKING ALGORITHM , GOAL THRESHOLD, GOAL EXPONENT )
+        bugTeam.addTasking(1.0, teams, lightTeam, Tasking.SEEK, Tasking.AUTO_CLOSEST, 0.0, 1.0);
+        lightTeam.addTasking(1.0, teams, bugTeam, Tasking.FLEE, Tasking.AUTO_GRADIENT, 0.0, 1.0);
         
 
         // Additional Metrics to Track
@@ -140,9 +140,9 @@ public class SimulationFactory {
                 Valuation.NUM_ACTIVE_OPPONENTS, 2, VictoryCondition.NEITHER, VictoryCondition.WON, false));
         
         // Goals (Taskings)
-        //                      ( WEIGHT, TEAMS, OPPONENT, SEEK/FLEE/CAPTURE? , TASKING ALGORITHM , GOAL THRESHOLD )   
-        robberTeam.addTasking(1.0, teams, copTeam, Tasking.FLEE, Tasking.AUTO_GRADIENT, 1.0);
-        copTeam.addTasking(1.0, teams, robberTeam, Tasking.CAPTURE, Tasking.CONTROL_CLOSEST, 1.0);
+        //                      ( WEIGHT, TEAMS, OPPONENT, SEEK/FLEE/CAPTURE? , TASKING ALGORITHM , GOAL THRESHOLD, EXPONENT )
+        robberTeam.addTasking(1.0, teams, copTeam, Tasking.FLEE, Tasking.AUTO_GRADIENT, 0.0, 1.0);
+        copTeam.addTasking(1.0, teams, robberTeam, Tasking.CAPTURE, Tasking.CONTROL_CLOSEST, 0.0, 1.0);
         
         // Additional Metrics to Track
         copTeam.addValuation(new Valuation(teams, copTeam, robberTeam, Valuation.DIST_AVG));
@@ -163,13 +163,13 @@ public class SimulationFactory {
         fishTeam.initSettings("Fish", 5, Team.START_RANDOM, Behavior.STRAIGHT, Color.GREEN);
         
         // Goals (Taskings)
-        //                      ( WEIGHT, TEAMS, OPPONENT, SEEK/FLEE/CAPTURE? , TASKING ALGORITHM , GOAL THRESHOLD )  
-        sealTeam.addTasking(1.0, teams, penguinTeam, Tasking.CAPTURE, Tasking.CONTROL_CLOSEST, 1.0);
-        penguinTeam.addTasking(0.95, teams, sealTeam, Tasking.FLEE, Tasking.AUTO_GRADIENT, 1.0);
-        penguinTeam.addTasking(1.0, teams, fishTeam, Tasking.CAPTURE, Tasking.CONTROL_CLOSEST, 1.0);
-        fishTeam.addTasking(0.95, teams, penguinTeam, Tasking.FLEE, Tasking.AUTO_GRADIENT, 1.0);
-        fishTeam.addTasking(1.0, teams, sealTeam, Tasking.CAPTURE, Tasking.CONTROL_CLOSEST, 1.0);
-        sealTeam.addTasking(0.95, teams, fishTeam, Tasking.FLEE, Tasking.AUTO_GRADIENT, 1.0);
+        //                      ( WEIGHT, TEAMS, OPPONENT, SEEK/FLEE/CAPTURE? , TASKING ALGORITHM , GOAL THRESHOLD, EXPONENT )
+        sealTeam.addTasking(1.0, teams, penguinTeam, Tasking.CAPTURE, Tasking.CONTROL_CLOSEST, 0.0, 1.0);
+        sealTeam.addTasking(0.95, teams, fishTeam, Tasking.FLEE, Tasking.AUTO_GRADIENT, 0.0, 0.9);
+        penguinTeam.addTasking(1.0, teams, fishTeam, Tasking.CAPTURE, Tasking.CONTROL_CLOSEST, 0.0, 1.0);
+        penguinTeam.addTasking(0.95, teams, sealTeam, Tasking.FLEE, Tasking.AUTO_GRADIENT, 0.0, 0.9);
+        fishTeam.addTasking(1.0, teams, sealTeam, Tasking.CAPTURE, Tasking.CONTROL_CLOSEST, 0.0, 1.0);
+        fishTeam.addTasking(0.95, teams, penguinTeam, Tasking.FLEE, Tasking.AUTO_GRADIENT, 0.0, 0.9);
         
         return teams;
     }
@@ -201,11 +201,11 @@ public class SimulationFactory {
                 Valuation.POSSIBLE_CAPTURES_NOT_MADE, 2.0, VictoryCondition.NEITHER, VictoryCondition.WON, false));
         
         // Goals (Taskings)
-        //                      ( WEIGHT, TEAMS, OPPONENT, SEEK/FLEE/CAPTURE? , TASKING ALGORITHM , GOAL THRESHOLD )  
-        lionTeam.addTasking(1.0, teams, wildebeastTeam, Tasking.CAPTURE, Tasking.AUTO_CLOSEST, 1.0);
-        lionTeam.addTasking(.01, teams, wateringHole, Tasking.CAPTURE, Tasking.AUTO_CLOSEST, 2.0);
-        wildebeastTeam.addTasking(0.5, teams, lionTeam, Tasking.FLEE, Tasking.AUTO_GRADIENT, 1.0);
-        wildebeastTeam.addTasking(1.0, teams, wateringHole, Tasking.CAPTURE, Tasking.CONTROL_CLOSEST, 1.0);
+        //                      ( WEIGHT, TEAMS, OPPONENT, SEEK/FLEE/CAPTURE? , TASKING ALGORITHM , GOAL THRESHOLD, EXPONENT )
+        lionTeam.addTasking(1.0, teams, wildebeastTeam, Tasking.CAPTURE, Tasking.AUTO_CLOSEST, 1.0, 1.0);
+        lionTeam.addTasking(.01, teams, wateringHole, Tasking.CAPTURE, Tasking.AUTO_CLOSEST, 2.0, 1.0);
+        wildebeastTeam.addTasking(0.5, teams, lionTeam, Tasking.FLEE, Tasking.AUTO_GRADIENT, 1.0, 2.0);
+        wildebeastTeam.addTasking(1.0, teams, wateringHole, Tasking.CAPTURE, Tasking.CONTROL_CLOSEST, 1.0, 1.0);
         
         return teams;
     }
@@ -229,7 +229,7 @@ public class SimulationFactory {
                 raptor.agents.get(j).setLeadFactor(j/5.0);
                 raptor.agents.get(j).setColorValue(Color.getHSBColor(0.2f+j/7.0f, 1.0f, 1.0f));
             }
-            raptor.addTasking(1.0, teams, mathematicians, Tasking.SEEK, Tasking.AUTO_CLOSEST, 1.0);
+            raptor.addTasking(1.0, teams, mathematicians, Tasking.SEEK, Tasking.AUTO_CLOSEST, 1.0, 1.0);
             raptor.addValuation(new Valuation(teams, raptor, mathematicians, Valuation.DIST_MIN));
             raptor.addValuation(new Valuation(teams, raptor, mathematicians, Valuation.AGENT_CLOSEST_TO_CAPTURE));
             raptor.addValuation(new Valuation(teams, raptor, mathematicians, Valuation.DIST_MAX));
@@ -254,14 +254,14 @@ public class SimulationFactory {
         predator.setCommRange(150.0);
         obstacle.initSettings("Obstacle", 4, Team.START_RANDOM, Behavior.STATIONARY, Color.DARK_GRAY);
 
-        flock.addTasking(.5, teams, flock, Tasking.FLEE, Tasking.AUTO_CLOSEST, 1);
-        flock.addTasking(.4, teams, flock, Tasking.SEEK, Tasking.AUTO_COM, 1);
-        flock.addTasking(.7, teams, flock, Tasking.SEEK, Tasking.AUTO_DIR_COM, 1);
-        flock.addTasking(1, teams, predator, Tasking.FLEE, Tasking.AUTO_GRADIENT, 1);
-        flock.addTasking(.5, teams, obstacle, Tasking.FLEE, Tasking.AUTO_CLOSEST, 1);
+        flock.addTasking(.5, teams, flock, Tasking.FLEE, Tasking.AUTO_CLOSEST, 1, 1);
+        flock.addTasking(.4, teams, flock, Tasking.SEEK, Tasking.AUTO_COM, 1, 1);
+        flock.addTasking(.7, teams, flock, Tasking.SEEK, Tasking.AUTO_DIR_COM, 1, 1);
+        flock.addTasking(1, teams, predator, Tasking.FLEE, Tasking.AUTO_GRADIENT, 1, 1);
+        flock.addTasking(.5, teams, obstacle, Tasking.FLEE, Tasking.AUTO_CLOSEST, 1, 1);
         
-        predator.addTasking(1, teams, flock, Tasking.CAPTURE, Tasking.AUTO_CLOSEST, 2.0);
-        predator.addTasking(.7, teams, obstacle, Tasking.FLEE, Tasking.AUTO_CLOSEST, 1);        
+        predator.addTasking(1, teams, flock, Tasking.CAPTURE, Tasking.AUTO_CLOSEST, 2.0, 1);
+        predator.addTasking(.7, teams, obstacle, Tasking.FLEE, Tasking.AUTO_CLOSEST, 1, 1);
         
         predator.addCaptureCondition(teams, flock, 1.0, CaptureCondition.REMOVETARGET);
         
@@ -291,8 +291,8 @@ public class SimulationFactory {
         // Goals (Taskings)
         //                      ( WEIGHT, TEAMS, OPPONENT, SEEK/FLEE/CAPTURE? , TASKING ALGORITHM , GOAL THRESHOLD )  
         for (int i = 0; i < 9; i++) {
-            teams.get(i).addTasking(1.0, teams, teams.get(i + 1), Tasking.CAPTURE, Tasking.CONTROL_CLOSEST, 1.0);
-            teams.get(i + 1).addTasking(0.5, teams, teams.get(i), Tasking.FLEE, Tasking.AUTO_GRADIENT, 1.0);
+            teams.get(i).addTasking(1.0, teams, teams.get(i + 1), Tasking.CAPTURE, Tasking.CONTROL_CLOSEST, 1.0, 1);
+            teams.get(i + 1).addTasking(0.5, teams, teams.get(i), Tasking.FLEE, Tasking.AUTO_GRADIENT, 1.0, 1);
         }
         
         return teams;
@@ -328,10 +328,10 @@ public class SimulationFactory {
         
         // Goals (Taskings)
         //                      ( WEIGHT, TEAMS, OPPONENT, SEEK/FLEE/CAPTURE? , TASKING ALGORITHM , GOAL THRESHOLD )  
-        offense.addTasking(.3, teams, sideline, Tasking.FLEE, Tasking.AUTO_CLOSEST, 1.0);
-        offense.addTasking(.7, teams, defense, Tasking.FLEE, Tasking.AUTO_CLOSEST, 1.0);
-        offense.addTasking(1.0, teams, endzone, Tasking.CAPTURE, Tasking.CONTROL_CLOSEST, 1.0);
-        defense.addTasking(1.0, teams, offense, Tasking.CAPTURE, Tasking.CONTROL_OPTIMAL, 1.0);
+        offense.addTasking(.3, teams, sideline, Tasking.FLEE, Tasking.AUTO_CLOSEST, 1.0, 1);
+        offense.addTasking(.7, teams, defense, Tasking.FLEE, Tasking.AUTO_CLOSEST, 1.0, 1);
+        offense.addTasking(1.0, teams, endzone, Tasking.CAPTURE, Tasking.CONTROL_CLOSEST, 1.0, 1);
+        defense.addTasking(1.0, teams, offense, Tasking.CAPTURE, Tasking.CONTROL_OPTIMAL, 1.0, 1);
             
         return teams;
     }

@@ -23,12 +23,12 @@ public abstract class AutonomousTaskGenerator extends TaskGenerator {
 
     public abstract V2 generate(Agent agent, DistanceTable table);
     
-    public void generate(Collection<Agent> team, DistanceTable table, double priority) {
+    public void generate(Collection<Agent> team, DistanceTable table, double weight, double threshold, double exponent) {
         V2 result;
         for(Agent a:team){
             result = generate(a, table);
             if (result != null) {
-                a.assign(new Task(this, result, type, priority));
+                a.assign(new Task(this, result, type, weight, threshold, exponent));
             }
         }
     }

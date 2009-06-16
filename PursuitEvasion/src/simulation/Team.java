@@ -186,9 +186,9 @@ public class Team implements ActionListener {
         mets.addChild(val.vs, Settings.PROPERTY_INDEPENDENT);
     }
 
-    /** Adds a goal. */
-    public void addTasking(double weight, Vector<Team> teams, Team target, int type, int tasking, double threshhold) {
-        addTasking(new Tasking(weight, teams, this, target, type, tasking, threshhold));
+    /** Adds a tasking. */
+    public void addTasking(double weight, Vector<Team> teams, Team target, int type, int tasking, double threshhold, double exponent) {
+        addTasking(new Tasking(weight, teams, this, target, type, tasking, threshhold, exponent));
     }
     
     /** Adds a "control agent". */

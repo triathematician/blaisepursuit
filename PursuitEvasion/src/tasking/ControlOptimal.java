@@ -50,7 +50,7 @@ public class ControlOptimal extends TaskGenerator {
      * @param team pursuing team
      */
     @Override
-    public void generate(Collection<Agent> team, DistanceTable table, double priority) {
+    public void generate(Collection<Agent> team, DistanceTable table, double weight, double threshold, double exponent) {
         try {
             Vector<Agent> ps = new Vector<Agent>(team);
             Vector<Agent> es = new Vector<Agent>(target.getActiveAgents());
@@ -171,7 +171,7 @@ public class ControlOptimal extends TaskGenerator {
             for (int i = 0; i < numberOfPursuers; i++) {
                 for (int j = 0; j < numberOfEvaders; j++) {
                     if (solution.elementAt(j + i * numberOfEvaders) == 1) {
-                        ps.get(i).assign(new Task(this, es.get(j).loc, type, priority));
+                        ps.get(i).assign(new Task(this, es.get(j).loc, type, weight, threshold, exponent));
                     }
                 }
             }
