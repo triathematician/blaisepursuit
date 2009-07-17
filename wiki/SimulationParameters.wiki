@@ -1,0 +1,33 @@
+#summary Summary of supported parameters, control variables, and state variables.
+
+=Definitions=
+
+  * *Parameters* are fixed throughout a simulation. They may be changed by the user, causing a completely new simulation to be run.
+  * *Algorithm Parameters* determine the methods use to adjust the control variables.
+  * *State Variables* store an agent's state at a given step in the simulation, probably including position and velocity.
+  * *Control Variables* are those that a player can change. These directly impact the player's state, in a manner probably determined by the parameters.
+
+Apart from these:
+  * *Visual Parameters* are parameters that do not impact the underlying mathematics, the result of the simulation.
+
+=Listing of Parameters and Variables=
+
+==Agent==
+
+  * *Locational Option 1*: top speed _(parameter)_ ; position _(state variable)_ ; heading _(control variable)_
+  * *Locational Option 2*: top speed, turning radius _(parameters)_ ; position, velocity _(state variables)_ ; change in heading _(control variable)_
+  * *Sensory*: sensor radius, communications radius _(parameters)_ ; visible opponent locations, communicated opponent locations _(state variables)_ ; sensor fusion (_algorithm_)
+  * *Behavioral*: task generator, task prioritizer, task implementer/behavior (_algorithm_)
+  * *Visual only*: color, path style, agent marker style, etc.
+
+== Team ==
+
+  * *Compositional*: size, agents, default agent parameters (_parameters_)
+  * *Locational*: starting locations (_parameter_) ; starting location generator (_algorithm_)
+  * *Sensory*: team sensing capability (_parameter_); team-visible opponent locations (_sensory_)
+  * *Behavioral*: team task generator (_algorithm_)
+
+== Simulation ==
+
+  * _Parameters_: maximum simulation time, time delta, obstacles, teams
+  * _State variables_: current time
