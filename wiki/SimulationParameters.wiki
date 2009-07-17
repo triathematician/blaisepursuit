@@ -1,6 +1,6 @@
 #summary Summary of supported parameters, control variables, and state variables.
 
-=Definitions=
+= Definitions =
 
   * *Parameters* are fixed throughout a simulation. They may be changed by the user, causing a completely new simulation to be run.
   * *Algorithm Parameters* determine the methods use to adjust the control variables.
@@ -10,9 +10,14 @@
 Apart from these:
   * *Visual Parameters* are parameters that do not impact the underlying mathematics, the result of the simulation.
 
-=Listing of Parameters and Variables=
+=== Comments ===
+  * The *parameters* are ALL that is needed to _RECONSTRUCT_ a simulation. The *state variables* and *control variables* are used _DURING_ the simulation.
+  * The *parameters* are what needs to be saved to disk to reload the simulation.
 
-==Agent==
+
+= Listing of Parameters and Variables =
+
+== Agent ==
 
   * *Locational Option 1*: top speed _(parameter)_ ; position _(state variable)_ ; heading _(control variable)_
   * *Locational Option 2*: top speed, turning radius _(parameters)_ ; position, velocity _(state variables)_ ; change in heading _(control variable)_
@@ -23,7 +28,7 @@ Apart from these:
 == Team ==
 
   * *Compositional*: size, agents, default agent parameters (_parameters_)
-  * *Locational*: starting locations (_parameter_) ; starting location generator (_algorithm_)
+  * *Locational*: starting locations (_parameter_)
   * *Sensory*: team sensing capability (_parameter_); team-visible opponent locations (_sensory_)
   * *Behavioral*: team task generator (_algorithm_)
 
@@ -31,3 +36,10 @@ Apart from these:
 
   * _Parameters_: maximum simulation time, time delta, obstacles, teams
   * _State variables_: current time
+
+
+= Helper Algorithms =
+
+Some additional algorithms are used to help generate parameters for teams and for agents. These can be used prior to a simulation's start to set certain parameters, but by themselves they aren't really parameters of particular players, teams, or the simulation. Here they are:
+
+  * *Locational*: starting location generator (_algorithm_)
