@@ -9,6 +9,7 @@
 
 Apart from these:
   * *Visual Parameters* are parameters that do not impact the underlying mathematics, the result of the simulation.
+  * *Utilities* can be used to generate initial positions for the agents, etc. They control how specific parameters are determined prior to the simulation.
 
 === Comments ===
   * The *parameters* are ALL that is needed to _RECONSTRUCT_ a simulation. The *state variables* and *control variables* are used _DURING_ the simulation.
@@ -23,7 +24,7 @@ Apart from these:
   * *Locational Option 2*: top speed, turning radius _(parameters)_ ; position, velocity _(state variables)_ ; change in heading _(control variable)_
   * *Sensory*: sensor radius, communications radius _(parameters)_ ; visible opponent locations, communicated opponent locations _(state variables)_ ; sensor fusion (_algorithm_)
   * *Behavioral*: task generator, task prioritizer, task implementer/behavior (_algorithm_)
-  * *Visual only*: color, path style, agent marker style, etc.
+  * *Visual*: color, path style, agent marker style, etc.
 
 == Team ==
 
@@ -31,6 +32,7 @@ Apart from these:
   * *Locational*: starting locations (_parameter_)
   * *Sensory*: team sensing capability (_parameter_); team-visible opponent locations (_sensory_)
   * *Behavioral*: team task generator (_algorithm_)
+  * *Visual*: default color, style, etc.
 
 == Simulation ==
 
