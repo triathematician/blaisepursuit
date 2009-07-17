@@ -20,18 +20,16 @@ Apart from these:
 
 == Agent ==
 
-  * *Locational Option 1*: top speed _(parameter)_ ; position _(state variable)_ ; heading _(control variable)_
-  * *Locational Option 2*: top speed, turning radius _(parameters)_ ; position, velocity _(state variables)_ ; change in heading _(control variable)_
-  * *Sensory*: sensor radius, communications radius _(parameters)_ ; visible opponent locations, communicated opponent locations _(state variables)_ ; sensor fusion (_algorithm_)
-  * *Behavioral*: task generator, task prioritizer, task implementer/behavior (_algorithm_)
+  * *Locational*: starting location, top speed, turning radius _(parameters)_ ; active status, position, velocity _(states)_ ; change in heading/direction _(control)_
+  * *Sensory*: sensor radius, communications radius _(parameters)_ ; visible opponent locations, communicated opponent locations _(states)_ ; sensor fusion _(algorithm)_
+  * *Behavioral*: task list _(state)_ ; task generator, task prioritizer, task implementer/behavior (_algorithms_)
   * *Visual*: color, path style, agent marker style, etc.
 
 == Team ==
 
-  * *Compositional*: size, agents, default agent parameters (_parameters_)
-  * *Locational*: starting locations (_parameter_)
-  * *Sensory*: team sensing capability (_parameter_); team-visible opponent locations (_sensory_)
-  * *Behavioral*: team task generator (_algorithm_)
+  * *Compositional*: size, agents, default agent parameters, initially active agents _(parameters)_
+  * *Sensory*: team sensing capability _(parameter)_; team-visible opponent locations _(state)_
+  * *Behavioral*: team task generator, capture condition, victory conditions/goals _(algorithms)_
   * *Visual*: default color, style, etc.
 
 == Simulation ==
@@ -40,8 +38,9 @@ Apart from these:
   * _State variables_: current time
 
 
-= Helper Algorithms =
+= Utility Algorithms =
 
 Some additional algorithms are used to help generate parameters for teams and for agents. These can be used prior to a simulation's start to set certain parameters, but by themselves they aren't really parameters of particular players, teams, or the simulation. Here they are:
 
   * *Locational*: starting location generator (_algorithm_)
+  * *Activator*: sets initially active agents (_algorithm_)
