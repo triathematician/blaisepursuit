@@ -1,5 +1,5 @@
 #summary Description of the XML structure of a PursuitEvasion simulation
-#labels Featured
+#labels Deprecated
 
 = Introduction =
 This space describes the XML format for PursuitEvasion simulation files. Since the program is always changing, this may change somewhat over time.
