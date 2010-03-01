@@ -63,7 +63,7 @@ public class PointDistributionApplet extends javax.swing.JApplet {
                     scenarioPlot.addPlottable(vis);
                     vis.addChangeListener(new ChangeListener(){
                         public void stateChanged(ChangeEvent e) {
-                            jTable1.setModel(vis.getTableModel());
+                            table.updateModel();
                             avgLabel.setText(" Avg Area = " + String.format("%2f", vis.scenario.getAreaAverage()));
                             devLabel.setText(" Dev Area = " + String.format("%2f", Math.sqrt(vis.scenario.getAreaVariance())));
                             varLabel.setText(" Var Area = " + String.format("%2f", vis.scenario.getAreaVariance()));
@@ -102,12 +102,12 @@ public class PointDistributionApplet extends javax.swing.JApplet {
         goButton = new javax.swing.JButton();
         statusBar = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
         jPanel2 = new javax.swing.JPanel();
         avgLabel = new javax.swing.JLabel();
         devLabel = new javax.swing.JLabel();
         varLabel = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        table = new main.PointDistributionTable();
         jSplitPane1 = new javax.swing.JSplitPane();
         scenarioPlot = new org.bm.blaise.specto.plane.PlanePlotComponent();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -182,11 +182,6 @@ public class PointDistributionApplet extends javax.swing.JApplet {
         jPanel1.setMinimumSize(new java.awt.Dimension(200, 65));
         jPanel1.setLayout(new java.awt.BorderLayout());
 
-        jScrollPane3.setPreferredSize(new java.awt.Dimension(300, 300));
-        jScrollPane3.setViewportView(jTable1);
-
-        jPanel1.add(jScrollPane3, java.awt.BorderLayout.CENTER);
-
         jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
         jPanel2.setLayout(new java.awt.GridLayout(2, 1));
 
@@ -204,6 +199,10 @@ public class PointDistributionApplet extends javax.swing.JApplet {
 
         jPanel1.add(jPanel2, java.awt.BorderLayout.PAGE_END);
 
+        jScrollPane2.setViewportView(table);
+
+        jPanel1.add(jScrollPane2, java.awt.BorderLayout.CENTER);
+
         getContentPane().add(jPanel1, java.awt.BorderLayout.EAST);
 
         jSplitPane1.setDividerLocation(200);
@@ -214,7 +213,7 @@ public class PointDistributionApplet extends javax.swing.JApplet {
         scenarioPlot.setLayout(scenarioPlotLayout);
         scenarioPlotLayout.setHorizontalGroup(
             scenarioPlotLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 320, Short.MAX_VALUE)
+            .add(0, 418, Short.MAX_VALUE)
         );
         scenarioPlotLayout.setVerticalGroup(
             scenarioPlotLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -335,10 +334,9 @@ public class PointDistributionApplet extends javax.swing.JApplet {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JTable jTable1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JButton loadButton;
     private gui.RollupPanel propPanel;
@@ -346,6 +344,7 @@ public class PointDistributionApplet extends javax.swing.JApplet {
     private javax.swing.JButton saveButton;
     private org.bm.blaise.specto.plane.PlanePlotComponent scenarioPlot;
     private javax.swing.JLabel statusBar;
+    private main.PointDistributionTable table;
     private javax.swing.JLabel varLabel;
     // End of variables declaration//GEN-END:variables
 

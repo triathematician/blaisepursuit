@@ -6,9 +6,13 @@
 package main;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.geom.Point2D;
 import java.awt.geom.Point2D.Double;
+import javax.swing.JLabel;
+import javax.swing.JTable;
 import javax.swing.event.ChangeEvent;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import org.bm.blaise.specto.plottable.VPointSet;
@@ -93,22 +97,6 @@ public class DistributionScenarioVis extends PlottableGroup<Point2D.Double> impl
         fireStateChanged();
     }
 
-    final String[] COLS = { "x", "y", "Nearby Area" };
-
-    /** Returns a table of point/area pairs representing the rows in a table. */
-    public TableModel getTableModel() {
-        Object[][] result = new Object[scenario.getPoints().length][2];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = new Object[] {
-                scenario.getPoints()[i].x,
-                scenario.getPoints()[i].y,
-//                String.format("(%2f, %2f)", scenario.getPoints()[i].x), scenario.getPoints()[i].y),
-                scenario.getArea(scenario.getPoints()[i])
-            };
-        }
-        return new DefaultTableModel(result, COLS);
-    }
-
     @Override public String toString() { return "Packing Scenario Visualization"; }
 
     //
@@ -136,6 +124,11 @@ public class DistributionScenarioVis extends PlottableGroup<Point2D.Double> impl
         return new Color((c.getRed()+cr) % 255, (c.getGreen()+cg)%255, (c.getBlue()+cb) % 255);
     }
 
+    /** @return i'th point color */
+    static Color getColor(int i) {
+        return new Color((128+i*13) % 255, (128+i*87) % 255, (128+i*147) % 255);
+    }
+
     @Override
     public void paintComponent(VisometryGraphics<Point2D.Double> vg) {
         boundaryPolygon.paintComponent(vg);
@@ -144,10 +137,10 @@ public class DistributionScenarioVis extends PlottableGroup<Point2D.Double> impl
         ShapeStyle interiorStyle = new ShapeStyle();
         vg.setShapeStyle(interiorStyle);
         Color is = interiorStyle.getFillColor();
-        Color c = is;
+        int i = 0;
         for (Point2D.Double p : scenario.getPoints()) {
-            interiorStyle.setFillColor(c);
-            c = nextColor(c, 13, 83, 157);
+            interiorStyle.setFillColor(getColor(i));
+            i++;
             vg.drawClosedPath(scenario.getNearestPolygon(p));
         }
         interiorStyle.setFillColor(is);

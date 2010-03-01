@@ -7,6 +7,8 @@ package main;
 
 import data.propertysheet.PropertySheet;
 import data.propertysheet.editor.EditorRegistration;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.beans.DefaultPersistenceDelegate;
 import java.beans.XMLDecoder;
@@ -23,6 +25,7 @@ import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
+import org.bm.blaise.sequor.timer.BetterTimer;
 import org.bm.blaise.specto.plane.PlaneAxes;
 import org.bm.blaise.specto.plane.PlaneAxes.AxisStyle;
 import org.bm.blaise.specto.visometry.Plottable;
@@ -52,11 +55,12 @@ public class PointDistributionMain extends javax.swing.JFrame {
         scenarioPlot.addPlottable(PlaneAxes.instance(AxisStyle.BOX, "x", "y"));
 
         vis = new DistributionScenarioVis();
+        table.setScenario(vis.getScenario());
         scenarioPlot.setDefaultCoordinateHandler(vis);
         scenarioPlot.addPlottable(vis);
         vis.addChangeListener(new ChangeListener(){
             public void stateChanged(ChangeEvent e) {
-                jTable1.setModel(vis.getTableModel());
+                table.updateModel();
                 avgLabel.setText(" Avg Area = " + String.format("%2f", vis.scenario.getAreaAverage()));
                 devLabel.setText(" Dev Area = " + String.format("%2f", Math.sqrt(vis.scenario.getAreaVariance())));
                 varLabel.setText(" Var Area = " + String.format("%2f", vis.scenario.getAreaVariance()));
@@ -80,12 +84,12 @@ public class PointDistributionMain extends javax.swing.JFrame {
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
         jPanel2 = new javax.swing.JPanel();
         avgLabel = new javax.swing.JLabel();
         devLabel = new javax.swing.JLabel();
         varLabel = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        table = new main.PointDistributionTable();
         jSplitPane1 = new javax.swing.JSplitPane();
         scenarioPlot = new org.bm.blaise.specto.plane.PlanePlotComponent();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -99,17 +103,14 @@ public class PointDistributionMain extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         algoBox = new javax.swing.JComboBox();
         goButton = new javax.swing.JButton();
+        playButton = new javax.swing.JButton();
+        stopButton = new javax.swing.JButton();
         statusBar = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jPanel1.setMinimumSize(new java.awt.Dimension(200, 65));
         jPanel1.setLayout(new java.awt.BorderLayout());
-
-        jScrollPane2.setPreferredSize(new java.awt.Dimension(300, 300));
-        jScrollPane2.setViewportView(jTable1);
-
-        jPanel1.add(jScrollPane2, java.awt.BorderLayout.CENTER);
 
         jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
         jPanel2.setLayout(new java.awt.GridLayout(2, 1));
@@ -128,6 +129,10 @@ public class PointDistributionMain extends javax.swing.JFrame {
 
         jPanel1.add(jPanel2, java.awt.BorderLayout.PAGE_END);
 
+        jScrollPane2.setViewportView(table);
+
+        jPanel1.add(jScrollPane2, java.awt.BorderLayout.CENTER);
+
         getContentPane().add(jPanel1, java.awt.BorderLayout.EAST);
 
         jSplitPane1.setDividerLocation(200);
@@ -138,7 +143,7 @@ public class PointDistributionMain extends javax.swing.JFrame {
         scenarioPlot.setLayout(scenarioPlotLayout);
         scenarioPlotLayout.setHorizontalGroup(
             scenarioPlotLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 332, Short.MAX_VALUE)
+            .add(0, 430, Short.MAX_VALUE)
         );
         scenarioPlotLayout.setVerticalGroup(
             scenarioPlotLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -155,6 +160,7 @@ public class PointDistributionMain extends javax.swing.JFrame {
 
         jToolBar1.setRollover(true);
 
+        jLabel2.setFont(new java.awt.Font("Tahoma", 3, 13));
         jLabel2.setText("File: ");
         jToolBar1.add(jLabel2);
 
@@ -214,6 +220,28 @@ public class PointDistributionMain extends javax.swing.JFrame {
         });
         jToolBar1.add(goButton);
 
+        playButton.setText("Play!");
+        playButton.setFocusable(false);
+        playButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        playButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        playButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                playButtonActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(playButton);
+
+        stopButton.setText("Stop!");
+        stopButton.setFocusable(false);
+        stopButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        stopButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        stopButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                stopButtonActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(stopButton);
+
         getContentPane().add(jToolBar1, java.awt.BorderLayout.NORTH);
 
         statusBar.setText("STATUS: ");
@@ -255,6 +283,7 @@ public class PointDistributionMain extends javax.swing.JFrame {
             XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(file)));
             vis.setScenario((DistributionScenario) decoder.readObject());
             decoder.close();
+            table.setScenario(vis.getScenario());
             statusBar.setText(statusBar.getText() + "... successful!");
         } catch (FileNotFoundException ex) {
             statusBar.setText(statusBar.getText() + " ERROR -- FILE NOT FOUND!");
@@ -316,6 +345,23 @@ public class PointDistributionMain extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_saveAsButtonActionPerformed
 
+    BetterTimer timer;
+
+    private void playButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_playButtonActionPerformed
+        timer = new BetterTimer(100);
+        timer.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) {
+                goButtonActionPerformed(null);
+            }
+        });
+        timer.start();
+    }//GEN-LAST:event_playButtonActionPerformed
+
+    private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
+        if (timer != null)
+            timer.stop();
+    }//GEN-LAST:event_stopButtonActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -340,14 +386,16 @@ public class PointDistributionMain extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JTable jTable1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JButton loadButton;
+    private javax.swing.JButton playButton;
     private gui.RollupPanel propPanel;
     private javax.swing.JButton saveAsButton;
     private javax.swing.JButton saveButton;
     private org.bm.blaise.specto.plane.PlanePlotComponent scenarioPlot;
     private javax.swing.JLabel statusBar;
+    private javax.swing.JButton stopButton;
+    private main.PointDistributionTable table;
     private javax.swing.JLabel varLabel;
     // End of variables declaration//GEN-END:variables
 

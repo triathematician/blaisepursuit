@@ -35,13 +35,12 @@ public class DistributionScenarioVisBeanInfo extends SimpleBeanInfo {
     private static final int PROPERTY_pointsActive = 8;
     private static final int PROPERTY_scenario = 9;
     private static final int PROPERTY_selected = 10;
-    private static final int PROPERTY_tableModel = 11;
-    private static final int PROPERTY_visible = 12;
+    private static final int PROPERTY_visible = 11;
 
     // Property array 
     /*lazy PropertyDescriptor*/
     private static PropertyDescriptor[] getPdescriptor(){
-        PropertyDescriptor[] properties = new PropertyDescriptor[13];
+        PropertyDescriptor[] properties = new PropertyDescriptor[12];
     
         try {
             properties[PROPERTY_adjusting] = new PropertyDescriptor ( "adjusting", main.DistributionScenarioVis.class, "isAdjusting", null ); // NOI18N
@@ -65,8 +64,6 @@ public class DistributionScenarioVisBeanInfo extends SimpleBeanInfo {
             properties[PROPERTY_scenario] = new PropertyDescriptor ( "scenario", main.DistributionScenarioVis.class, "getScenario", "setScenario" ); // NOI18N
             properties[PROPERTY_selected] = new PropertyDescriptor ( "selected", main.DistributionScenarioVis.class, "isSelected", "setSelected" ); // NOI18N
             properties[PROPERTY_selected].setHidden ( true );
-            properties[PROPERTY_tableModel] = new PropertyDescriptor ( "tableModel", main.DistributionScenarioVis.class, "getTableModel", null ); // NOI18N
-            properties[PROPERTY_tableModel].setHidden ( true );
             properties[PROPERTY_visible] = new PropertyDescriptor ( "visible", main.DistributionScenarioVis.class, "isVisible", "setVisible" ); // NOI18N
         }
         catch(IntrospectionException e) {
