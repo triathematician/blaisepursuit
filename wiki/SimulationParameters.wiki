@@ -1,5 +1,5 @@
 #summary Summary of supported parameters, control variables, and state variables.
-#labels Deprecated
+#labels Featured,Phase-Design
 
 = Definitions =
 
