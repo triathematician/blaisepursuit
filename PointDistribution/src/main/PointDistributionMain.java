@@ -361,7 +361,11 @@ public class PointDistributionMain extends javax.swing.JFrame {
         timer = new BetterTimer(100);
         timer.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e) {
-                goButtonActionPerformed(null);
+                try {
+                    goButtonActionPerformed(null);
+                } catch (Exception ex) {
+                    timer.stop();
+                }
             }
         });
         step = 0;
