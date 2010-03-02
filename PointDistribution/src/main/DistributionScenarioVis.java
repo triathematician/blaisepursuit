@@ -141,7 +141,10 @@ public class DistributionScenarioVis extends PlottableGroup<Point2D.Double> impl
         for (Point2D.Double p : scenario.getPoints()) {
             interiorStyle.setFillColor(getColor(i));
             i++;
-            vg.drawClosedPath(scenario.getNearestPolygon(p));
+            try {
+                vg.drawClosedPath(scenario.getNearestPolygon(p));
+            } catch (NullPointerException ex) {
+            }
         }
         interiorStyle.setFillColor(is);
 

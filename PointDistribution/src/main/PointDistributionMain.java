@@ -102,9 +102,11 @@ public class PointDistributionMain extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JToolBar.Separator();
         jLabel1 = new javax.swing.JLabel();
         algoBox = new javax.swing.JComboBox();
-        goButton = new javax.swing.JButton();
         playButton = new javax.swing.JButton();
+        goButton = new javax.swing.JButton();
         stopButton = new javax.swing.JButton();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        stepLabel = new javax.swing.JLabel();
         statusBar = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -209,18 +211,7 @@ public class PointDistributionMain extends javax.swing.JFrame {
         });
         jToolBar1.add(algoBox);
 
-        goButton.setText("GO!");
-        goButton.setFocusable(false);
-        goButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        goButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        goButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                goButtonActionPerformed(evt);
-            }
-        });
-        jToolBar1.add(goButton);
-
-        playButton.setText("Play!");
+        playButton.setText("Play");
         playButton.setFocusable(false);
         playButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         playButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -231,7 +222,18 @@ public class PointDistributionMain extends javax.swing.JFrame {
         });
         jToolBar1.add(playButton);
 
-        stopButton.setText("Stop!");
+        goButton.setText("Step");
+        goButton.setFocusable(false);
+        goButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        goButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        goButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goButtonActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(goButton);
+
+        stopButton.setText("Stop");
         stopButton.setFocusable(false);
         stopButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         stopButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -241,6 +243,11 @@ public class PointDistributionMain extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(stopButton);
+        jToolBar1.add(jSeparator2);
+
+        stepLabel.setText("step = 0");
+        stepLabel.setPreferredSize(new java.awt.Dimension(80, 16));
+        jToolBar1.add(stepLabel);
 
         getContentPane().add(jToolBar1, java.awt.BorderLayout.NORTH);
 
@@ -253,6 +260,8 @@ public class PointDistributionMain extends javax.swing.JFrame {
     private void goButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButtonActionPerformed
         Point2D.Double[] newPos = algorithm.getNewPositions(vis.getScenario());
         vis.getPoints().setValues(newPos);
+        step++;
+        stepLabel.setText("step = " + step);
         statusBar.setText("STATUS: updated point locations");
 }//GEN-LAST:event_goButtonActionPerformed
 
@@ -346,6 +355,7 @@ public class PointDistributionMain extends javax.swing.JFrame {
     }//GEN-LAST:event_saveAsButtonActionPerformed
 
     BetterTimer timer;
+    int step = 0;
 
     private void playButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_playButtonActionPerformed
         timer = new BetterTimer(100);
@@ -354,12 +364,15 @@ public class PointDistributionMain extends javax.swing.JFrame {
                 goButtonActionPerformed(null);
             }
         });
+        step = 0;
+        stepLabel.setText("step = " + step);
         timer.start();
     }//GEN-LAST:event_playButtonActionPerformed
 
     private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
         if (timer != null)
             timer.stop();
+        step = 0;
     }//GEN-LAST:event_stopButtonActionPerformed
 
     /**
@@ -385,6 +398,7 @@ public class PointDistributionMain extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JButton loadButton;
@@ -394,6 +408,7 @@ public class PointDistributionMain extends javax.swing.JFrame {
     private javax.swing.JButton saveButton;
     private org.bm.blaise.specto.plane.PlanePlotComponent scenarioPlot;
     private javax.swing.JLabel statusBar;
+    private javax.swing.JLabel stepLabel;
     private javax.swing.JButton stopButton;
     private main.PointDistributionTable table;
     private javax.swing.JLabel varLabel;

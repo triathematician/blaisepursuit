@@ -41,8 +41,14 @@ public class PointDistributionTable extends JTable {
         tableChanged(new TableModelEvent(dataModel, TableModelEvent.HEADER_ROW));
     }
 
+    int nRows = 0;
+
     public void updateModel() {
-        tableChanged(new TableModelEvent(dataModel, TableModelEvent.HEADER_ROW));
+        if (nRows != dataModel.getRowCount()) {
+            tableChanged(new TableModelEvent(dataModel, TableModelEvent.HEADER_ROW));
+            nRows = dataModel.getRowCount();
+        } else
+            repaint();
     }
 
     @Override
@@ -90,7 +96,8 @@ public class PointDistributionTable extends JTable {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             if (value instanceof Color) {
-                colorLabel.setBackground((Color) value);
+                Color c = (Color) value;
+                colorLabel.setBackground(new Color(c.getRed(), c.getGreen(), c.getBlue(), 192));
                 return colorLabel;
             } else
                 return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
