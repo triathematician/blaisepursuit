@@ -8,10 +8,10 @@ package gsim.logger;
 import java.util.ArrayList;
 import java.util.List;
 import sim.Simulation;
-import sim.SimulationComponent;
-import sim.agent.SimulationTeam;
+import sim.SimComponent;
+import sim.component.team.Team;
 import sim.metrics.VictoryCondition;
-import sim.agent.AgentSensorProxy;
+import sim.component.VisiblePlayer;
 
 /**
  * <p>
@@ -32,16 +32,16 @@ public class EssentialLogger {
      * @param sim the simulation
      * @return list of essential loggers (initially a list of teamlogger's)
      */
-    public static List<AbstractSimulationLogger> getEssentialLoggersFor(Simulation sim) {
-        sim.removeAllChangeListeners();
-        List<AbstractSimulationLogger> result = new ArrayList<AbstractSimulationLogger>();
-        SimulationComponent[] scs = sim.getComponent();
-        for (SimulationComponent sc : scs) {
-            if (sc instanceof SimulationTeam) {
-                SimulationTeam st = (SimulationTeam) sc;
+    public static List<SimulationLogger> getEssentialLoggersFor(Simulation sim) {
+        sim.removeAllSimulationEventListeners();
+        List<SimulationLogger> result = new ArrayList<SimulationLogger>();
+        SimComponent[] scs = sim.getComponent();
+        for (SimComponent sc : scs) {
+            if (sc instanceof Team) {
+                Team st = (Team) sc;
                 result.add(new TeamLogger(sim, st));
                 if (st.getParameters().getVictoryCondition() != VictoryCondition.NONE) {
-                    result.add(new MetricLogger(
+                    result.add(new TeamMetricLogger(
                             st.getParameters().getVictoryCondition().getMetricByName(),
                             sim,
                             st.getParameters().getVictoryCondition().getMetric(),
@@ -49,8 +49,8 @@ public class EssentialLogger {
                             st.getParameters().getVictoryCondition().getTeam2()
                             ));
                 }
-            } else if (sc instanceof AgentSensorProxy) {
-                result.add(new AgentLogger(sim, (AgentSensorProxy) sc));
+            } else if (sc instanceof VisiblePlayer) {
+                result.add(new AgentLogger(sim, (VisiblePlayer) sc));
             }
         }
         return result;

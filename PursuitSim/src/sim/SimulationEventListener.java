@@ -14,9 +14,21 @@ import java.util.EventListener;
  *
  * @author Elisha Peterson
  */
-public interface SimulationEventListener extends EventListener {
+public abstract class SimulationEventListener
+        implements EventListener {
 
-    /** Handles a simulation event. */
-    public void handleSimulationEvent(SimulationEvent e);
+    /** Handles a general event. */
+    public void handleSimulationEvent(SimulationEvent e) {
+        if (e.message.equals("Reset"))
+            handleResetEvent(e);
+        else if (e.message.equals("Iteration"))
+            handleIterationEvent(e);
+    }
+
+    /** Handles a reset event. */
+    abstract public void handleResetEvent(SimulationEvent e);
+
+    /** Handles an iteration event. */
+    abstract public void handleIterationEvent(SimulationEvent e);
 
 }

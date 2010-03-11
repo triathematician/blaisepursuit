@@ -5,7 +5,7 @@
 package sim.metrics;
 
 import sim.DistanceCache;
-import sim.agent.SimulationTeam;
+import sim.component.team.Team;
 
 /**
  * <p>
@@ -20,15 +20,15 @@ public class VictoryCondition {
     TeamMetrics metric = TeamMetrics.MAXIMUM_DISTANCE;
     ComparisonType type = ComparisonType.LESS;
     double threshold = 10.0;
-    SimulationTeam team1;
-    SimulationTeam team2;
+    Team team1;
+    Team team2;
 
     /** Basic instantiation */
     public VictoryCondition() {
     }
 
     /** Construct with specified values. */
-    public VictoryCondition(SimulationTeam team1, SimulationTeam team2, TeamMetrics metric, ComparisonType type, double threshold) {
+    public VictoryCondition(Team team1, Team team2, TeamMetrics metric, ComparisonType type, double threshold) {
         setTeam1(team1);
         setTeam2(team2);
         setMetricByName(metric.name());
@@ -49,6 +49,10 @@ public class VictoryCondition {
         return metric;
     }
 
+    public void setMetric(TeamMetrics m) {
+        this.metric = m;
+    }
+
     public String getMetricByName() {
         return metric==null ? "" : metric.name();
     }
@@ -57,19 +61,19 @@ public class VictoryCondition {
         metric = TeamMetrics.valueOf(name);
     }
 
-    public SimulationTeam getTeam1() {
+    public Team getTeam1() {
         return team1;
     }
 
-    public void setTeam1(SimulationTeam team1) {
+    public void setTeam1(Team team1) {
         this.team1 = team1;
     }
 
-    public SimulationTeam getTeam2() {
+    public Team getTeam2() {
         return team2;
     }
 
-    public void setTeam2(SimulationTeam team2) {
+    public void setTeam2(Team team2) {
         this.team2 = team2;
     }
 
@@ -83,6 +87,10 @@ public class VictoryCondition {
 
     public ComparisonType getType() {
         return type;
+    }
+
+    public void setType(ComparisonType ct) {
+        this.type = ct;
     }
 
     public String getTypeByName() {

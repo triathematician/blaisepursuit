@@ -7,14 +7,13 @@ package gsim.logger;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import sim.DistanceCache;
 import sim.Simulation;
-import sim.agent.SimulationAgent;
-import sim.agent.SimulationTeam;
+import sim.SimulationEvent;
+import sim.component.InitialPositionSetter;
+import sim.component.agent.Agent;
+import sim.component.team.Team;
 
 /**
  * <p>
@@ -23,12 +22,14 @@ import sim.agent.SimulationTeam;
  *
  * @author Elisha Peterson
  */
-public class TeamLogger extends AbstractSimulationLogger {
+public class TeamLogger extends SimulationLogger {
 
     /** The team to log */
-    SimulationTeam team;
+    Team team;
     /** The agents on the team whose positions are being logged */
-    List<SimulationAgent> agents;
+    List<Agent> agents;
+    /** The initial positions for the team */
+    List<InitialPositionSetter> init;
     /** The times at which points are logged */
     List<Double> times;
     /** The positions of the agents */
@@ -42,38 +43,35 @@ public class TeamLogger extends AbstractSimulationLogger {
      * @param sim
      * @param team
      */
-    public TeamLogger(Simulation sim, SimulationTeam team) {
+    public TeamLogger(Simulation sim, Team team) {
         super(sim);
         this.team = team;
-        this.agents = team.getInitiallyActiveAgents();
         times = new ArrayList<Double>();
         pos = new ArrayList<List<Point2D.Double>>();
         vel = new ArrayList<List<Point2D.Double>>();
-        reset();
     }
 
-    public SimulationTeam getTeam() {
+    public Team getTeam() {
         return team;
     }
 
     /** @return list of agents stored by this logger. */
-    public List<SimulationAgent> getAgents() {
+    public List<Agent> getAgents() {
         return agents;
     }
 
     /** @return array of values corresponding to the initial locations of the agents */
     public Point2D.Double[] getInitialPositions() {
-        Point2D.Double[] result = new Point2D.Double[agents.size()];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = agents.get(i).getParameters().getInitialPosition();
-        }
+        Point2D.Double[] result = new Point2D.Double[init.size()];
+        for (int i = 0; i < result.length; i++)
+            result[i] = init.get(i).getInitialPosition();
         return result;
     }
 
     final static Point2D.Double[] DUMMY_ARRAY = new Point2D.Double[]{};
 
     /** @return path of corresponding agent. */
-    public Point2D.Double[] getPath(SimulationAgent sa) {
+    public Point2D.Double[] getPath(Agent sa) {
         return pos.get(agents.indexOf(sa)).toArray(DUMMY_ARRAY);
     }
 
@@ -82,22 +80,30 @@ public class TeamLogger extends AbstractSimulationLogger {
         return pos.get(i).toArray(DUMMY_ARRAY);
     }
 
-    public void reset() {
+    /** @return the i'th initial position. */
+    public InitialPositionSetter getInitialPositionSetter(int idx) {
+        return init.get(idx);
+    }
+
+    public void handleResetEvent(SimulationEvent e) {
         times.clear();
         pos.clear();
         vel.clear();
-        agents = team.getInitiallyActiveAgents();
-        for (SimulationAgent a : agents) {
+        agents = team.getComponentsByType(Agent.class);
+        for (Agent a : agents) {
             pos.add(new ArrayList<Point2D.Double>());
             vel.add(new ArrayList<Point2D.Double>());
         }
+        init = team.getComponentsByType(InitialPositionSetter.class);
     }
 
     public void logData(DistanceCache dt, double curTime) {
         times.add(curTime);
         for (int i = 0; i < agents.size(); i++) {
-            pos.get(i).add(((Point2D.Double) agents.get(i).getPosition().clone()));
-            vel.get(i).add(((Point2D.Double) agents.get(i).getVelocity().clone()));
+            pos.get(i).add(((Point2D.Double) agents.get(i).state.position.clone()));
+            vel.get(i).add(agents.get(i).getVelocity() == null
+                    ? new Point2D.Double() 
+                    : (Point2D.Double) agents.get(i).state.velocity.clone());
         }
     }
 

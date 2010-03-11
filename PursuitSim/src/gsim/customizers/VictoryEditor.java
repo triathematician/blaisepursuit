@@ -22,7 +22,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
-import sim.agent.SimulationTeam;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import sim.Simulation;
+import sim.component.team.Team;
 import sim.metrics.ComparisonType;
 import sim.metrics.TeamMetrics;
 import sim.metrics.VictoryCondition;
@@ -31,16 +34,14 @@ import sim.metrics.VictoryCondition;
  *
  * @author ae3263
  */
-public class VictoryEditor extends MPropertyEditorSupport implements ActionListener {
-
-    VictoryCondition vic;
+public class VictoryEditor extends MPropertyEditorSupport
+        implements ActionListener, ChangeListener {
 
     /** Button to display the victory condition. */
     JButton button;
     /** Panel for layout */
     JPanel panel;
     
-    JLabel ownerLabel;
     JComboBox metricBox;
     JComboBox teamBox;
     KernelComboModel teamModel;
@@ -52,29 +53,33 @@ public class VictoryEditor extends MPropertyEditorSupport implements ActionListe
     }
 
     public VictoryEditor(VictoryCondition vic) {
-        this.vic = vic;
-        teamModel = new KernelComboModel(SimulationTeam.class);
+        setValue(vic);
         initComponents();
     }
 
     private void initComponents() {
+        teamModel = Simulation.ACTIVE_SIM == null
+                ? new KernelComboModel(Team.class)
+                : new KernelComboModel(Team.class, Simulation.ACTIVE_SIM.getComponentsByType(Team.class));
+        
         panel = new JPanel(new FlowLayout());
-        ownerLabel = new JLabel(vic.getTeam1()==null?"NONE":vic.getTeam1().toString());
-          ownerLabel.setToolTipText("Team looking for victory");
-          ownerLabel.setPreferredSize(new Dimension(80, 24));
         metricBox = new JComboBox(TeamMetrics.values());
           metricBox.setToolTipText("Choice of metric");
-        teamBox = new JComboBox();
+          metricBox.addActionListener(this);
+        teamBox = new JComboBox(teamModel);
           teamBox.setToolTipText("Select team for comparison");
           teamBox.setPreferredSize(new Dimension(100, 24));
+          teamBox.setSelectedItem(null);
+          teamBox.addActionListener(this);
         compareBox = new JComboBox(ComparisonType.values());
           compareBox.setToolTipText("Type of comparison");
+          compareBox.addActionListener(this);
         valueSpinner = new JSpinner(
-            new SpinnerNumberModel((Number) vic.getThreshold(), -Double.MAX_VALUE, Double.MAX_VALUE, 0.01));
+            new SpinnerNumberModel(0.0, -Double.MAX_VALUE, Double.MAX_VALUE, 0.01));
           valueSpinner.setPreferredSize(new Dimension(50, valueSpinner.getPreferredSize().height));
           valueSpinner.setToolTipText("Threshold for victory");
           valueSpinner.setPreferredSize(new Dimension(70, 24));
-        panel.add(ownerLabel);
+          valueSpinner.addChangeListener(this);
         panel.add(metricBox);
         panel.add(teamBox);
         panel.add(compareBox);
@@ -83,8 +88,8 @@ public class VictoryEditor extends MPropertyEditorSupport implements ActionListe
         panel.validate();
 
         // set up listener to track for customization... this happens when the button is pressed
-        button = new JButton(vic.toString());
-        button.addActionListener(this);
+        button = new JButton(getValue() == null ? "" : getValue().toString());
+          button.addActionListener(this);
         
         initEditorValue();
     }
@@ -105,25 +110,69 @@ public class VictoryEditor extends MPropertyEditorSupport implements ActionListe
 
     @Override
     protected void initEditorValue() {
-        button.setText(vic.toString());
-        ownerLabel.setText(vic.getTeam1()==null?"NONE":vic.getTeam1().toString());
-        metricBox.setSelectedItem(vic.getMetric());
-        teamBox.setSelectedItem(vic.getTeam2()==null?"NONE":vic.getTeam2().toString());
-        compareBox.setSelectedItem(vic.getType());
-        valueSpinner.setValue(vic.getThreshold());
+        VictoryCondition vic = (VictoryCondition) getValue();
+        if (button != null) {
+            button.setText(vic.toString());
+            if (dialog != null)
+                dialog.setTitle("Edit a Victory Condition [" + ( vic.getTeam1() == null ? "" : vic.getTeam1() ) + "]");
+            metricBox.setSelectedItem(vic.getMetric());
+            teamBox.setSelectedItem(vic.getTeam2());
+            compareBox.setSelectedItem(vic.getType());
+            valueSpinner.setValue(vic.getThreshold());
+        }
     }
 
-    public void actionPerformed(ActionEvent e) {
-        // called when the button is pressed... show dialog with the custom editor
-        JDialog dialog = new JDialog((Frame) null, "Edit a Victory Condition", true);
+    JDialog dialog;
+    JButton okButton, cancelButton;
+
+    void initDialog() {
+        dialog = new JDialog((Frame) null, "Edit a Victory Condition", true);
         dialog.setResizable(false);
         dialog.setLayout(new BorderLayout());
         dialog.add(panel, BorderLayout.CENTER);
-        JPanel p = new JPanel(new FlowLayout());
-        p.add(new JButton("OK"));
-        p.add(new JButton("Cancel"));
-        dialog.add(p, BorderLayout.SOUTH);
+
+        okButton = new JButton("Okay");
+        okButton.addActionListener(this);
+        cancelButton = new JButton("Cancel");
+        cancelButton.addActionListener(this);
+
+        JPanel buttons = new JPanel(new FlowLayout());
+        buttons.add(okButton);
+        buttons.add(cancelButton);
+        dialog.add(buttons, BorderLayout.SOUTH);
+
         dialog.pack();
-        dialog.setVisible(true);
+    }
+
+
+
+    public void actionPerformed(ActionEvent e) {
+        // lazy-load dialog
+        if (dialog == null)
+            initDialog();
+
+        // ok, cancel, show actions
+        if (e.getSource().equals(button)) {
+            dialog.setVisible(true);
+        } else if (e.getSource().equals(okButton)) {
+            dialog.setVisible(false);
+            stopEditAction();
+        } else if (e.getSource().equals(cancelButton)) {
+            dialog.setVisible(false);
+            cancelEditAction();
+        }
+
+        // component-wise actions
+        else if (e.getSource().equals(metricBox))
+            ((VictoryCondition)getNewValue()).setMetric((TeamMetrics) metricBox.getSelectedItem());
+        else if (e.getSource().equals(teamBox))
+            ((VictoryCondition)getNewValue()).setTeam2((Team) teamBox.getSelectedItem());
+        else if (e.getSource().equals(compareBox))
+            ((VictoryCondition)getNewValue()).setType((ComparisonType) compareBox.getSelectedItem());
+    }
+
+    public void stateChanged(ChangeEvent e) {
+        if (e.getSource().equals(valueSpinner))
+            ((VictoryCondition)getNewValue()).setThreshold((Double) valueSpinner.getValue());
     }
 }

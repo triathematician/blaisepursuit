@@ -19,7 +19,7 @@ public class KernelComboModel extends AbstractListModel implements ComboBoxModel
     /** Class type to look for */
     Class cls;
     /** Objects to look through */
-    Collection<Object> objects;
+    Collection objects;
     /** Objects found of given class type */
     transient ArrayList<Object> items;
     /** Selected item */
@@ -28,9 +28,10 @@ public class KernelComboModel extends AbstractListModel implements ComboBoxModel
     public KernelComboModel(Class cls) {
         this.cls = cls;
         objects = new ArrayList<Object>();
+        findObjects();
     }
 
-    public KernelComboModel(Class cls, Collection<Object> objects) {
+    public KernelComboModel(Class cls, Collection objects) {
         this.cls = cls;
         this.objects = objects;
         findObjects();

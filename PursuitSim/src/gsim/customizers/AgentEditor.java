@@ -14,7 +14,7 @@ import java.util.Collection;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import sim.agent.AgentParameters;
+import sim.component.agent.AgentParameters;
 
 /**
  *

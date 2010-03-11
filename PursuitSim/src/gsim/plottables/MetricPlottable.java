@@ -5,11 +5,12 @@
 
 package gsim.plottables;
 
+import gsim.logger.AgentMetricLogger;
 import gsim.logger.MetricLogger;
 import java.awt.Color;
 import java.awt.geom.Point2D;
 import org.bm.blaise.specto.plottable.VPath;
-import sim.agent.SimulationTeam;
+import sim.component.team.Team;
 
 /**
  * <p>
@@ -34,9 +35,7 @@ public class MetricPlottable extends VPath<Point2D.Double> {
         this.log = log;
         this.name = log.getName();
         setValues(log.getValueGraph());
-        if (log.getFirst() instanceof SimulationTeam) {
-            setBaseColor(((SimulationTeam) log.getFirst()).getParameters().getColor());
-        }
+        setBaseColor(log.getColor());
     }
 
     /** Call when the log has updated. Revises the paths. */

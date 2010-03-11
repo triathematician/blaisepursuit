@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import sim.DistanceCache;
 import sim.Simulation;
-import sim.agent.AgentSensorProxy;
+import sim.SimulationEvent;
+import sim.component.VisiblePlayer;
 
 /**
  * <p>
@@ -19,10 +20,10 @@ import sim.agent.AgentSensorProxy;
  *
  * @author Elisha Peterson
  */
-public class AgentLogger extends AbstractSimulationLogger {
+public class AgentLogger extends SimulationLogger {
 
     /** The agent whose position is being logged */
-    AgentSensorProxy agent;
+    VisiblePlayer agent;
     /** The times at which points are logged */
     List<Double> times;
     /** List of positions */
@@ -36,17 +37,16 @@ public class AgentLogger extends AbstractSimulationLogger {
      * @param sim
      * @param team
      */
-    public AgentLogger(Simulation sim, AgentSensorProxy agent) {
+    public AgentLogger(Simulation sim, VisiblePlayer agent) {
         super(sim);
         this.agent = agent;
         times = new ArrayList<Double>();
         pos = new ArrayList<Point2D.Double>();
         vel = new ArrayList<Point2D.Double>();
-        reset();
     }
 
     /** @return list of agents stored by this logger. */
-    public AgentSensorProxy getAgent() {
+    public VisiblePlayer getAgent() {
         return agent;
     }
 
@@ -65,7 +65,7 @@ public class AgentLogger extends AbstractSimulationLogger {
         return pos.toArray(DUMMY_ARRAY);
     }
 
-    public void reset() {
+    public void handleResetEvent(SimulationEvent e) {
         times.clear();
         pos.clear();
         vel.clear();
@@ -75,7 +75,7 @@ public class AgentLogger extends AbstractSimulationLogger {
         times.add(curTime);
         if (agent.isActive()) {
             pos.add((Point2D.Double) agent.getPosition().clone());
-            vel.add((Point2D.Double) agent.getVelocity().clone());
+            vel.add(agent.getVelocity() == null ? new Point2D.Double() : (Point2D.Double) agent.getVelocity().clone());
         }
     }
 

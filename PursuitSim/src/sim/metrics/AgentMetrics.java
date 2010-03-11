@@ -5,7 +5,7 @@
 package sim.metrics;
 
 import sim.DistanceCache;
-import sim.agent.AgentSensorProxy;
+import sim.component.VisiblePlayer;
 
 /**
  * <p>
@@ -14,15 +14,16 @@ import sim.agent.AgentSensorProxy;
  *
  * @author Elisha Peterson
  */
-public enum AgentMetrics implements Metric<AgentSensorProxy> {
-    /** Computes minimum distance between the two teams. */
+public enum AgentMetrics {
+    /** Computes distance between two agents. */
     DISTANCE("Distance") {
-        public double getValue(DistanceCache dt, double curTime, AgentSensorProxy agent1, AgentSensorProxy agent2) {
+        public double getValue(DistanceCache dt, double curTime, VisiblePlayer agent1, VisiblePlayer agent2) {
             return agent1.getPosition().distance(agent2.getPosition());
         }
     };
 
     String str;
+    abstract public double getValue(DistanceCache dt, double curTime, VisiblePlayer agent1, VisiblePlayer agent2);
     @Override public String toString() { return str; }
     AgentMetrics(String str) { this.str = str; }
 }

@@ -11,121 +11,72 @@
 
 package gsim;
 
-import gsim.customizers.VictoryEditor;
-import data.propertysheet.IndexedPropertySheet;
-import data.propertysheet.PropertySheet;
-import data.propertysheet.PropertySheetDialog;
-import data.propertysheet.editor.EnumObjectEditor;
-import gsim.editor.CreateASim;
-import gsim.logger.AbstractSimulationLogger;
-import gsim.logger.AgentLogger;
-import gsim.logger.EssentialLogger;
-import gsim.logger.MetricLogger;
-import gsim.logger.TeamLogger;
-import gsim.plottables.AgentPlottable;
-import gsim.plottables.MetricPlottable;
-import gsim.plottables.TeamPlottableGroup;
-import gsim.samples.SampleSims;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.awt.geom.Point2D;
-import java.beans.DefaultPersistenceDelegate;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyEditorManager;
-import java.beans.XMLDecoder;
-import java.beans.XMLEncoder;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
+import java.util.ArrayList;
+
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.filechooser.FileFilter;
-import org.bm.blaise.sequor.timer.BetterTimeClock;
+
+import data.propertysheet.IndexedPropertySheet;
+import data.propertysheet.PropertySheet;
+import data.propertysheet.PropertySheetDialog;
+import data.propertysheet.editor.EnumObjectEditor;
+import javax.swing.event.ListSelectionEvent;
+
 import org.bm.blaise.specto.plane.PlaneAxes;
 import org.bm.blaise.specto.plane.PlaneGrid;
 import org.bm.blaise.specto.visometry.Plottable;
+import org.bm.blaise.sequor.timer.BetterTimeClock;
+
+import gsim.customizers.*;
+import gsim.logger.*;
+import gsim.plottables.*;
+import gsim.samples.SampleSims;
+import java.awt.Dimension;
+import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import javax.swing.JEditorPane;
+import javax.swing.JScrollPane;
+import javax.swing.event.ListSelectionListener;
+
 import sim.Simulation;
-import sim.SimulationComponent;
-import sim.agent.LocationGenerator;
-import sim.metrics.VictoryCondition;
-import sim.agent.Sensor;
-import sim.tasks.TaskChooser;
-import sim.tasks.Router;
+import sim.SimComponent;
+import sim.component.team.LocationGenerator;
+import sim.comms.Sensor;
+import sim.metrics.*;
+import sim.tasks.*;
 
 /**
  *
  * @author ae3263
  */
-public class SimFrame extends javax.swing.JFrame implements ChangeListener {
+public class SimFrame extends javax.swing.JFrame 
+        implements ActionListener, ChangeListener, ListSelectionListener {
 
+    /** The simulation */
+    Simulation sim;
+    /** Stores the currently "selected" component. */
+    SimComponent selected;
+    /** The timer used to animate plots in both windows. */
+    BetterTimeClock timer;
+    /** This object handles input/output to files. */
+    SimFileActions sfa;
+
+    //===============================================================================
     //
-    // FILE HANDLING
-    //
-
-    JFileChooser fc;
-    File openFile = null;
-
-    /** @return extension of a file */
-    public static String getExtension(File f) {
-        String ext = null;
-        String s = f.getName();
-        int i = s.lastIndexOf('.');
-        if (i > 0 &&  i < s.length() - 1) ext = s.substring(i+1).toLowerCase();
-        return ext;
-    }
-    /** A filter that shows only XML file */
-    final static FileFilter xmlFilter = new FileFilter(){
-        public boolean accept(File pathname) {
-            return pathname != null && (pathname.isDirectory() || "xml".equals(getExtension(pathname)));
-        }
-        public String getDescription() { return "XML files"; }
-    };
-
-    private void load(File file) {
-        System.out.print("Opening: " + file.getName() + "...");
-        try {
-            XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(file)));
-            sim = (Simulation) decoder.readObject();
-            initPlots();
-            initSimulation(sim);
-            decoder.close();
-            System.out.println(" successful.");
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(SimFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    private void save(File file) {
-        System.out.print("Saving: " + file.getName() + "...");
-        try {
-            XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(new FileOutputStream(file)));
-            encoder.setPersistenceDelegate(Point2D.Double.class, new DefaultPersistenceDelegate(new String[]{"x","y"}));
-            encoder.writeObject((Simulation)sim);
-            encoder.close();
-            System.out.println(" successful.");
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(SimFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    //
-    // CONSTRUCTOR
+    //                      CONSTRUCTOR
     //
     
     /** Creates new form SimFrame */
@@ -133,18 +84,25 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
         try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch (Exception e) { }
 
         data.propertysheet.editor.EditorRegistration.registerEditors();
+
         PropertyEditorManager.registerEditor(Sensor.class, EnumObjectEditor.class);
         PropertyEditorManager.registerEditor(LocationGenerator.class, EnumObjectEditor.class);
         PropertyEditorManager.registerEditor(Router.class, EnumObjectEditor.class);
-        PropertyEditorManager.registerEditor(TaskChooser.class, EnumObjectEditor.class);        
+        PropertyEditorManager.registerEditor(TaskChooser.class, EnumObjectEditor.class);
+        PropertyEditorManager.registerEditor(Tasker.class, EnumObjectEditor.class);
+
         PropertyEditorManager.registerEditor(VictoryCondition.class, VictoryEditor.class);
+        PropertyEditorManager.registerEditor(Capture.class, CaptureEditor.class);
 
-        fc = new JFileChooser();
+
         timer = new BetterTimeClock();
+        timer.addActionListener(this);
 
+        sfa = new SimFileActions(this);
         initComponents();
-        initPlots();
         cleanupToolbar();
+        simComponentList.addListSelectionListener(this);
+
         loadPresetMenu();
     }
 
@@ -155,46 +113,44 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
     }
 
     void loadPresetMenu() {
+        int presetNumber = 0;
         for (final SampleSims sample : SampleSims.values()) {
             JMenuItem mi = new JMenuItem(sample.toString());
             mi.addActionListener(new ActionListener(){
-                public void actionPerformed(ActionEvent e) { initSimulation(sample.getSimulation()); }
+                public void actionPerformed(ActionEvent e) {
+                    logs = new ArrayList<SimulationLogger>();
+                    initSimulation(sample.getSimulation(logs));
+                }
             });
+            mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_0+presetNumber, InputEvent.CTRL_MASK));
+            presetNumber++;
             presetMenu.add(mi);
         }
-        initSimulation(SampleSims.values()[0].getSimulation());
+        logs = new ArrayList<SimulationLogger>();
+        initSimulation(SampleSims.values()[0].getSimulation(logs));
     }
 
     //
     // INITIALIZERS
     //
+    
+    ArrayList<SimulationLogger> logs;
 
     PlaneGrid grid1,grid2;
     PlaneAxes axes1,axes2;
 
     private void initPlots() {
-        mainPlot.removeAllPlottables();
-        grid1 = new PlaneGrid();
-        axes1 = PlaneAxes.instance(PlaneAxes.AxisStyle.BOX);
-        mainPlot.addPlottable(grid1);
-        mainPlot.addPlottable(axes1);
-        mainPlot.setDesiredRange(-70, -70, 70, 70);
-
-        grid2 = new PlaneGrid();
-        axes2 = new PlaneAxes();
-        logPlot.addPlottable(grid2);
-        logPlot.addPlottable(axes2);
-        logPlot.setDesiredRange(0,-50,100,50);
-
+        if (grid1 == null)
+            grid1 = new PlaneGrid();
+        if (axes1 == null)
+            axes1 = PlaneAxes.instance(PlaneAxes.AxisStyle.BOX);
+        if (grid2 == null)
+            grid2 = new PlaneGrid();
+        if (axes2 == null)
+            axes2 = new PlaneAxes();
+        
+        logPlot.setTimeClock(timer);
         mainPlot.setTimeClock(timer);
-    }
-
-    private void initSimulation(Simulation sim) {
-        if (sim == null)
-            throw new IllegalArgumentException("initSimulation called with null");
-        this.sim = sim;
-        List<AbstractSimulationLogger> el = EssentialLogger.getEssentialLoggersFor(sim);
-        sim.run();
 
         mainPlot.removeAllPlottables();
         mainPlot.addPlottable(grid1);
@@ -205,8 +161,24 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
         logPlot.addPlottable(grid2);
         logPlot.addPlottable(axes2);
         logPlot.setDesiredRange(0,-50,100,50);
+    }
 
-        for (AbstractSimulationLogger abs : el) {
+    void initSimulation(Simulation sim) {
+        if (sim == null)
+            throw new IllegalArgumentException("initSimulation called with null");
+
+        initPlots();
+
+        if (this.sim != null)
+            this.sim.removeChangeListener(this);
+        this.sim = sim;
+        sim.addChangeListener(this);
+        List<SimulationLogger> el = EssentialLogger.getEssentialLoggersFor(sim);
+        for (SimulationLogger asl : logs)
+            sim.addSimulationEventListener(asl);
+        sim.run();
+
+        for (SimulationLogger abs : el) {
             if (abs instanceof TeamLogger) {
                 TeamPlottableGroup tpg = new TeamPlottableGroup((TeamLogger) abs);
                 mainPlot.addPlottable(tpg);
@@ -221,20 +193,35 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
                 mpg.addChangeListener(this);
             }
         }
-
-        propPanel.removeAll();
-        propPanel.add("Simulation", new PropertySheet(sim));
-        for (SimulationComponent sc : sim.getComponent()) {
-            propPanel.add(sc.toString(), new PropertySheet(sc));
+        
+        for (SimulationLogger asl : logs) {
+            if (asl instanceof MetricLogger) {
+                MetricPlottable mpg = new MetricPlottable((MetricLogger) asl);
+                logPlot.addPlottable(mpg);
+                mpg.addChangeListener(this);
+            }
         }
-        propPanel.add("Plot Elements", new IndexedPropertySheet(mainPlot, "plottableArray"));
+
+        PropertySheet ps;
+        propPanel.removeAll();
+        ps = new PropertySheet(sim);
+        propPanel.add("Simulation", ps);
+
+        for (SimComponent sc : sim.getComponent()) {
+            ps = new PropertySheet(sc);
+            propPanel.add(sc.toString(), ps);
+        }
+
+        propPanel.add("Main Plot Elements", new IndexedPropertySheet(mainPlot, "plottableArray"));
+        propPanel.add("Metric Plot Elements", new IndexedPropertySheet(logPlot, "plottableArray"));
         propPanelSP.validate();
 
-        editAction.setEnabled(true);
-        saveAction.setEnabled(true);
-        saveAsAction.setEnabled(true);
+        simComponentList.setSim(sim);
+        Simulation.ACTIVE_SIM = sim;
+        sfa.enableSaveActions();
     }
 
+    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -244,8 +231,6 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        sim = new sim.Simulation();
-        timer = new org.bm.blaise.sequor.timer.BetterTimeClock();
         toolbar = new javax.swing.JToolBar();
         newTB = new javax.swing.JButton();
         editTB = new javax.swing.JButton();
@@ -260,21 +245,26 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
         stopTB = new javax.swing.JButton();
         slowTB = new javax.swing.JButton();
         fastTB = new javax.swing.JButton();
+        timeLabel = new javax.swing.JLabel();
         mainSP = new javax.swing.JSplitPane();
-        sideSP = new javax.swing.JSplitPane();
+        plotSP = new javax.swing.JSplitPane();
+        mainPlot = new org.bm.blaise.specto.plane.PlanePlotComponent();
+        logPlot = new org.bm.blaise.specto.plane.PlanePlotComponent();
+        settingsTP = new javax.swing.JTabbedPane();
+        componentSP = new javax.swing.JScrollPane();
+        simComponentList = new gsim.editor.SimulationComponentList();
         propPanelSP = new javax.swing.JScrollPane();
         propPanel = new gui.RollupPanel();
-        logPlot = new org.bm.blaise.specto.plane.PlanePlotComponent();
-        mainPlot = new org.bm.blaise.specto.plane.PlanePlotComponent();
+        statusLabel = new javax.swing.JLabel();
         mainMenu = new javax.swing.JMenuBar();
         simMenu = new javax.swing.JMenu();
         newMI = new javax.swing.JMenuItem();
         editMI = new javax.swing.JMenuItem();
         loadMI = new javax.swing.JMenuItem();
-        presetMenu = new javax.swing.JMenu();
         saveMI = new javax.swing.JMenuItem();
         saveAsMI = new javax.swing.JMenuItem();
         exitMI = new javax.swing.JMenuItem();
+        presetMenu = new javax.swing.JMenu();
         optionsMenu = new javax.swing.JMenu();
         timerSettingsMI = new javax.swing.JMenuItem();
         mainPlotMI = new javax.swing.JMenu();
@@ -298,7 +288,7 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
 
         toolbar.setRollover(true);
 
-        newTB.setAction(newAction);
+        newTB.setAction(sfa.newAction);
         newTB.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gsim/icons/document_32.png"))); // NOI18N
         newTB.setToolTipText("");
         newTB.setFocusable(false);
@@ -306,21 +296,21 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
         newTB.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         toolbar.add(newTB);
 
-        editTB.setAction(editAction);
+        editTB.setAction(sfa.editAction);
         editTB.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gsim/icons/pencil_32.png"))); // NOI18N
         editTB.setFocusable(false);
         editTB.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         editTB.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         toolbar.add(editTB);
 
-        loadTB.setAction(loadAction);
+        loadTB.setAction(sfa.loadAction);
         loadTB.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gsim/icons/folder_32.png"))); // NOI18N
         loadTB.setFocusable(false);
         loadTB.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         loadTB.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         toolbar.add(loadTB);
 
-        saveTB.setAction(saveAction);
+        saveTB.setAction(sfa.saveAction);
         saveTB.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gsim/icons/save_32.png"))); // NOI18N
         saveTB.setFocusable(false);
         saveTB.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -382,6 +372,10 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
         fastTB.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         toolbar.add(fastTB);
 
+        timeLabel.setText("Time = ");
+        timeLabel.setPreferredSize(new java.awt.Dimension(80, 16));
+        toolbar.add(timeLabel);
+
         getContentPane().add(toolbar, java.awt.BorderLayout.NORTH);
 
         mainSP.setDividerLocation(300);
@@ -389,68 +383,82 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
         mainSP.setOneTouchExpandable(true);
         mainSP.setPreferredSize(new java.awt.Dimension(1000, 700));
 
-        sideSP.setDividerLocation(500);
-        sideSP.setDividerSize(8);
-        sideSP.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        sideSP.setOneTouchExpandable(true);
+        plotSP.setDividerLocation(500);
+        plotSP.setDividerSize(8);
+        plotSP.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        plotSP.setResizeWeight(0.75);
+        plotSP.setOneTouchExpandable(true);
 
-        propPanelSP.setViewportBorder(javax.swing.BorderFactory.createTitledBorder("Settings"));
-        propPanelSP.setViewportView(propPanel);
-
-        sideSP.setTopComponent(propPanelSP);
-
-        org.jdesktop.layout.GroupLayout logPlotLayout = new org.jdesktop.layout.GroupLayout(logPlot);
-        logPlot.setLayout(logPlotLayout);
-        logPlotLayout.setHorizontalGroup(
-            logPlotLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 297, Short.MAX_VALUE)
-        );
-        logPlotLayout.setVerticalGroup(
-            logPlotLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 0, Short.MAX_VALUE)
-        );
-
-        sideSP.setRightComponent(logPlot);
-
-        mainSP.setLeftComponent(sideSP);
+        mainPlot.setMinimumSize(new java.awt.Dimension(200, 200));
+        mainPlot.setPreferredSize(new java.awt.Dimension(500, 500));
 
         org.jdesktop.layout.GroupLayout mainPlotLayout = new org.jdesktop.layout.GroupLayout(mainPlot);
         mainPlot.setLayout(mainPlotLayout);
         mainPlotLayout.setHorizontalGroup(
             mainPlotLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 280, Short.MAX_VALUE)
+            .add(0, 615, Short.MAX_VALUE)
         );
         mainPlotLayout.setVerticalGroup(
             mainPlotLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 427, Short.MAX_VALUE)
+            .add(0, 300, Short.MAX_VALUE)
         );
 
-        mainSP.setRightComponent(mainPlot);
+        plotSP.setLeftComponent(mainPlot);
+
+        logPlot.setMinimumSize(new java.awt.Dimension(200, 150));
+        logPlot.setPreferredSize(new java.awt.Dimension(400, 200));
+
+        org.jdesktop.layout.GroupLayout logPlotLayout = new org.jdesktop.layout.GroupLayout(logPlot);
+        logPlot.setLayout(logPlotLayout);
+        logPlotLayout.setHorizontalGroup(
+            logPlotLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(0, 615, Short.MAX_VALUE)
+        );
+        logPlotLayout.setVerticalGroup(
+            logPlotLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(0, 171, Short.MAX_VALUE)
+        );
+
+        plotSP.setRightComponent(logPlot);
+
+        mainSP.setRightComponent(plotSP);
+
+        settingsTP.setPreferredSize(new java.awt.Dimension(300, 400));
+
+        componentSP.setViewportView(simComponentList);
+
+        settingsTP.addTab("Basic Settings", componentSP);
+
+        propPanelSP.setViewportView(propPanel);
+
+        settingsTP.addTab("Advanced Settings", propPanelSP);
+
+        mainSP.setLeftComponent(settingsTP);
 
         getContentPane().add(mainSP, java.awt.BorderLayout.CENTER);
 
+        statusLabel.setText("Status");
+        getContentPane().add(statusLabel, java.awt.BorderLayout.PAGE_END);
+
         simMenu.setText("Simulation");
 
-        newMI.setAction(newAction);
+        newMI.setAction(sfa.newAction);
         newMI.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gsim/icons/document_16.png"))); // NOI18N
         simMenu.add(newMI);
 
-        editMI.setAction(editAction);
+        editMI.setAction(sfa.editAction);
         editMI.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gsim/icons/pencil_16.png"))); // NOI18N
         simMenu.add(editMI);
 
-        loadMI.setAction(loadAction);
+        loadMI.setAction(sfa.loadAction);
         loadMI.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gsim/icons/folder_16.png"))); // NOI18N
         simMenu.add(loadMI);
 
-        presetMenu.setText("Load preset");
-        simMenu.add(presetMenu);
-
-        saveMI.setAction(saveAction);
+        saveMI.setAction(sfa.saveAction);
         saveMI.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gsim/icons/save_16.png"))); // NOI18N
         simMenu.add(saveMI);
 
-        saveAsMI.setAction(saveAsAction);
+        saveAsMI.setAction(sfa.saveAsAction);
         simMenu.add(saveAsMI);
 
         exitMI.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F4, java.awt.event.InputEvent.ALT_MASK));
@@ -463,6 +471,9 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
         simMenu.add(exitMI);
 
         mainMenu.add(simMenu);
+
+        presetMenu.setText("Preset");
+        mainMenu.add(presetMenu);
 
         optionsMenu.setText("Options");
 
@@ -597,95 +608,6 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
     }// </editor-fold>//GEN-END:initComponents
 
 
-    //
-    // ACTIONS
-    //
-
-    public Action newAction = new AbstractAction("New Simulation...") {
-        {
-            putValue(SHORT_DESCRIPTION, "Create a new simulation.");
-            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
-            putValue(MNEMONIC_KEY, KeyEvent.VK_N);
-            setEnabled(true);
-        }
-        public void actionPerformed(ActionEvent e) {
-            Simulation newSim = CreateASim.showDialog(SimFrame.this, new Simulation());
-            if (newSim != null)
-                initSimulation(newSim);
-        }
-    };
-
-    public Action loadAction = new AbstractAction("Open Simulation") {
-        {
-            putValue(SHORT_DESCRIPTION, "Load a simulation from a file");
-            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
-            putValue(MNEMONIC_KEY, KeyEvent.VK_O);
-            setEnabled(true);
-        }
-        public void actionPerformed(ActionEvent e) {
-            fc.setFileFilter(xmlFilter);
-            if (openFile != null) {
-                fc.setCurrentDirectory(openFile);
-                fc.setSelectedFile(openFile);
-            }
-            if (fc.showOpenDialog(SimFrame.this) == JFileChooser.APPROVE_OPTION) {
-                openFile = fc.getSelectedFile();
-                load(openFile);
-            } else {
-                System.out.println(" open command cancelled by user.");
-            }
-        }
-    };
-
-    public Action editAction = new AbstractAction("Edit Simulation") {
-        {
-            putValue(SHORT_DESCRIPTION, "Edit the simulation settings");
-            putValue(MNEMONIC_KEY, KeyEvent.VK_E);
-            setEnabled(true);
-        }
-        public void actionPerformed(ActionEvent e) {
-            Simulation newSim = CreateASim.showDialog(SimFrame.this, sim);
-            if (newSim != null)
-                initSimulation(newSim);
-        }
-    };
-
-    public Action saveAction = new AbstractAction("Save Simulation") {
-        {
-            putValue(SHORT_DESCRIPTION, "Save the simulation to the current file");
-            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
-            putValue(MNEMONIC_KEY, KeyEvent.VK_S);
-            setEnabled(false);
-        }
-        public void actionPerformed(ActionEvent e) {
-            if (openFile != null)
-                save(openFile);
-            else
-                saveAsAction.actionPerformed(e);
-        }
-    };
-
-    public Action saveAsAction = new AbstractAction("Save Simulation As...") {
-        {
-            putValue(SHORT_DESCRIPTION, "Save the simulation to a new file");
-            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK + InputEvent.ALT_MASK));
-            putValue(MNEMONIC_KEY, KeyEvent.VK_A);
-            setEnabled(false);
-        }
-        public void actionPerformed(ActionEvent e) {
-            fc.setFileFilter(xmlFilter);
-            if (openFile != null) {
-                fc.setCurrentDirectory(openFile);
-                fc.setSelectedFile(openFile);
-            }
-            if (fc.showSaveDialog(SimFrame.this) == JFileChooser.APPROVE_OPTION) {
-                openFile = fc.getSelectedFile();
-                save(openFile);
-            } else
-                System.out.println(" save command cancelled by user.");
-        }
-    };
-
     private void runAgainButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_runAgainButtonActionPerformed
         stateChanged(null);
     }//GEN-LAST:event_runAgainButtonActionPerformed
@@ -740,24 +662,42 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
     }//GEN-LAST:event_boundsMI2ActionPerformed
 
 
-    private void aboutMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMIActionPerformed
-        JOptionPane.showMessageDialog(this, 
-                "<html><b>Pursuit-Evasion Simulation</b><br>" +
-                "Alpha Pre-Release<br>" +
-                "<i>by Elisha Peterson</i><br><br>" +
-                "with icons by <a href=\"http://dryicons.com\">http://dryicons.com</a>",
-                "About", JOptionPane.PLAIN_MESSAGE);
-    }//GEN-LAST:event_aboutMIActionPerformed
-
     private void helpMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helpMIActionPerformed
-        JOptionPane.showMessageDialog(this, 
-                "This will later bring up a help menu, but right now it does nothing.",
-                "Help", JOptionPane.QUESTION_MESSAGE);
+        JEditorPane editorPane = new JEditorPane();
+        editorPane.setEditable(false);
+        java.net.URL helpURL = SimFrame.class.getResource("HelpFile.html");
+        if (helpURL != null)
+            try {
+                editorPane.setPage(helpURL);
+            } catch (IOException e) {
+                System.err.println("Attempted to read a bad URL: " + helpURL);
+            }
+        else
+            System.err.println("Couldn't find file: TextSamplerDemoHelp.html");
+
+        //Put the editor pane in a scroll pane.
+        JScrollPane editorScrollPane = new JScrollPane(editorPane);
+        editorScrollPane.setVerticalScrollBarPolicy(
+                        JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        editorScrollPane.setPreferredSize(new Dimension(480, 640));
+        
+        JOptionPane.showMessageDialog(this,
+                editorScrollPane,
+                "Pursuit Simulator Help", JOptionPane.QUESTION_MESSAGE);
     }//GEN-LAST:event_helpMIActionPerformed
 
     private void timerSettingsMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timerSettingsMIActionPerformed
         new PropertySheetDialog(this, false, timer).setVisible(true);
     }//GEN-LAST:event_timerSettingsMIActionPerformed
+
+    private void aboutMIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMIActionPerformed
+        JOptionPane.showMessageDialog(this,
+                "<html><b>Pursuit-Evasion Simulation</b><br>" +
+                "Alpha Pre-Release<br>" +
+                "<i>by Elisha Peterson</i><br><br>" +
+                "with icons by <a href=\"http://dryicons.com\">http://dryicons.com</a>",
+                "About", JOptionPane.PLAIN_MESSAGE);
+}//GEN-LAST:event_aboutMIActionPerformed
 
     /**
     * @param args the command line arguments
@@ -778,6 +718,7 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
     private javax.swing.JCheckBoxMenuItem axesVisMI2;
     private javax.swing.JMenuItem boundsMI1;
     private javax.swing.JMenuItem boundsMI2;
+    private javax.swing.JScrollPane componentSP;
     private javax.swing.JMenuItem editMI;
     private javax.swing.JButton editTB;
     private javax.swing.JMenuItem exitMI;
@@ -803,6 +744,7 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
     private javax.swing.JMenu optionsMenu;
     private javax.swing.JButton pauseTB;
     private javax.swing.JButton playTB;
+    private javax.swing.JSplitPane plotSP;
     private javax.swing.JMenu presetMenu;
     private gui.RollupPanel propPanel;
     private javax.swing.JScrollPane propPanelSP;
@@ -811,33 +753,53 @@ public class SimFrame extends javax.swing.JFrame implements ChangeListener {
     private javax.swing.JMenuItem saveAsMI;
     private javax.swing.JMenuItem saveMI;
     private javax.swing.JButton saveTB;
-    private javax.swing.JSplitPane sideSP;
-    private sim.Simulation sim;
+    private javax.swing.JTabbedPane settingsTP;
+    private gsim.editor.SimulationComponentList simComponentList;
     private javax.swing.JMenu simMenu;
     private javax.swing.JButton slowTB;
+    private javax.swing.JLabel statusLabel;
     private javax.swing.JButton stopTB;
-    private org.bm.blaise.sequor.timer.BetterTimeClock timer;
+    private javax.swing.JLabel timeLabel;
     private javax.swing.JMenuItem timerSettingsMI;
     private javax.swing.JToolBar toolbar;
     // End of variables declaration//GEN-END:variables
 
+    public Simulation getSimulation() {
+        return sim;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == timer)
+            timeLabel.setText("Time = " + timer.getTime());
+    }
+
+    int i = 0;
+
     /** This is typically called when the simulation needs to run again, e.g. when the underlying sim changes or a parameter changes. */
     public void stateChanged(ChangeEvent e) {
-        sim.run();
-        for (Plottable abs : mainPlot.getPlottables()) {
-            if (abs instanceof TeamPlottableGroup) {
-                ((TeamPlottableGroup) abs).updatePaths();
-            } else if (abs instanceof AgentPlottable) {
-                ((AgentPlottable) abs).updatePath();
-            }
+        if (e != null && e.getSource() != null && e.getSource().equals(sim)) {
+            initSimulation(sim);
+        } else {
+            sim.run();
+
+            for (Plottable abs : mainPlot.getPlottables())
+                if (abs instanceof TeamPlottableGroup)
+                    ((TeamPlottableGroup) abs).updatePaths();
+                else if (abs instanceof AgentPlottable)
+                    ((AgentPlottable) abs).updatePath();
+
+            for (Plottable p : logPlot.getPlottables())
+                if (p instanceof MetricPlottable)
+                    ((MetricPlottable) p).updatePaths();
         }
-        for (Plottable p : logPlot.getPlottables()) {
-            if (p instanceof MetricPlottable) {
-                ((MetricPlottable) p).updatePaths();
-            }
-        }
+        
         mainPlot.repaint();
         logPlot.repaint();
     }
 
+    public void valueChanged(ListSelectionEvent e) {
+        if (e.getSource() == simComponentList) {
+            selected = (SimComponent) simComponentList.getSelectedValue();
+        }
+    }
 }

@@ -18,6 +18,7 @@ import scio.coordinate.utils.PlanarMathUtils;
  */
 public abstract class Router {
 
+
     /**
      * Implements a task by returning an object representing the appropriate control variable.
      * @param task a task to implement
@@ -56,14 +57,17 @@ public abstract class Router {
     //============================================//
 
     private static Point2D.Double unitVectorTo(Point2D.Double owner, Point2D.Double target, double m) {
-        return PlanarMathUtils.normalize(new Point2D.Double(m * (target.x - owner.x), m * (target.y - owner.y) ));
+        double x = m * (target.x - owner.x);
+        double y = m * (target.y - owner.y);
+        double magn = Math.sqrt(x*x + y*y);
+        return new Point2D.Double(x / magn, y / magn);
     }
 
     /** Routes owner straight to target */
     public static final Router DEFAULT_INSTANCE = new Router() {
         @Override public String toString() { return "Router - Straight"; }
         public Point2D.Double getDirectionFor(Task task) {
-            return unitVectorTo(task.getOwnerPosition(), task.getTargetPosition(), task.getTaskType().getMultiplier());
+            return unitVectorTo(task.ownerLoc, task.targetLoc, task.type.multiplier);
         }
     };
 
@@ -76,28 +80,33 @@ public abstract class Router {
     public static class Leading extends Router {
         double leadFactor = 1;
         public Leading() { }
+        public Leading(double lf) { setLeadFactor(lf); }
         public double getLeadFactor() { return leadFactor; }
         public void setLeadFactor(double leadFactor) { this.leadFactor = leadFactor; }
         @Override public String toString() { return String.format("Router - Leading [%.2f]", this.leadFactor); }
 
         public Point2D.Double getDirectionFor(Task task) {
-            Point2D.Double loc = task.getOwnerPosition();
-            Point2D.Double tLoc = task.getTargetPosition();
-            Point2D.Double tVel = task.getTargetVelocity();
-            double tSpeed = tVel.distance(0, 0);
+            Point2D.Double loc = task.ownerLoc;
+            Point2D.Double tLoc = task.targetLoc;
+            Point2D.Double tVel = task.target.getVelocity();
+            double tSpeed = tVel == null ? 0 : tVel.distance(0, 0);
             Point2D.Double diff = new Point2D.Double(tLoc.x - loc.x, tLoc.y - loc.y);
 
-            if (tSpeed == 0 || task.getOwnerSpeed() < tSpeed * 1.0001)
+            if (tSpeed == 0 || task.owner.par.topSpeed < tSpeed * 1.0001)
                 return PlanarMathUtils.normalize(diff);
 
             // In this algorithm, the capture point is assumed to be where the pursuer would first be able to overtake the evader if the evader kept heading
             // in its current direction... this is where the ratio of speeds is equal to the ratio of distances to this hypothetical point.
             // The evader's distance to this point is dE, and the pursuer heads toward the evader's position plus its heading times dE*leadFactor.
-            double mu = task.getOwnerSpeed() / tSpeed;                                     // ratio of speeds is used several times in the formula
+            double mu = task.owner.par.topSpeed / tSpeed;                                     // ratio of speeds is used several times in the formula
             double dcosth = (tVel.x * diff.x + tVel.y * diff.y) / tSpeed;   // basic dot product formula for cosine... provides ||diff|| * cos of angle between diff and tVel
             double dE = (Math.abs(dcosth) - Math.sqrt(dcosth * dcosth - (1 - mu * mu) * diff.distanceSq(0,0))) / (1 - mu * mu);
 
-            return unitVectorTo(loc, new Point2D.Double(tLoc.x + tVel.x*leadFactor*dE/tSpeed, tLoc.y + tVel.y*leadFactor*dE/tSpeed), task.getTaskType().getMultiplier());
+            return unitVectorTo(loc,
+                    new Point2D.Double(
+                    tLoc.x + tVel.x * leadFactor * dE / tSpeed,
+                    tLoc.y + tVel.y * leadFactor * dE / tSpeed),
+                    task.type.multiplier);
         }
     }
 
@@ -115,17 +124,20 @@ public abstract class Router {
         @Override public String toString() { return String.format("Router - Plucker Leading [%.2f]", this.leadFactor); }
 
         public Point2D.Double getDirectionFor(Task task) {
-            Point2D.Double loc = task.getOwnerPosition();
-            Point2D.Double tLoc = task.getTargetPosition();
-            Point2D.Double tVel = task.getTargetVelocity();
-            double tSpeed = tVel.distance(0, 0);
+            Point2D.Double loc = task.ownerLoc;
+            Point2D.Double tLoc = task.targetLoc;
+            Point2D.Double tVel = task.target.getVelocity();
+            double tSpeed = tVel == null ? 0 : tVel.distance(0, 0);
             Point2D.Double diff = new Point2D.Double(tLoc.x - loc.x, tLoc.y - loc.y);
 
-            if (tSpeed == 0 || task.getOwnerSpeed() < tSpeed * 1.0001)
+            if (tSpeed == 0 || task.owner.par.topSpeed < tSpeed * 1.0001)
                 return PlanarMathUtils.normalize(diff);
 
-            double dE = diff.distance(0, 0) * task.getOwnerSpeed() / tSpeed;
-            return unitVectorTo(loc, new Point2D.Double(tLoc.x + tVel.x*leadFactor*dE/tSpeed, tLoc.y + tVel.y*leadFactor*dE/tSpeed), task.getTaskType().getMultiplier());
+            double dE = diff.distance(0, 0) * task.owner.par.topSpeed / tSpeed;
+            return unitVectorTo(loc, new Point2D.Double(
+                    tLoc.x + tVel.x*leadFactor*dE/tSpeed,
+                    tLoc.y + tVel.y*leadFactor*dE/tSpeed),
+                    task.type.multiplier);
         }
     }
 
@@ -143,10 +155,10 @@ public abstract class Router {
         @Override public String toString() { return String.format("Router - Constant Bearing [%.2f]", angle); }
 
         public Point2D.Double getDirectionFor(Task task) {
-            Point2D.Double loc = task.getOwnerPosition();
-            Point2D.Double tLoc = task.getTargetPosition();
+            Point2D.Double loc = task.ownerLoc;
+            Point2D.Double tLoc = task.targetLoc;
             Point2D.Double diff = PlanarMathUtils.normalize(new Point2D.Double(tLoc.x - loc.x, tLoc.y - loc.y));
-            if (PlanarMathUtils.crossProduct(diff, task.getTargetVelocity()) > 0)
+            if (PlanarMathUtils.crossProduct(diff, task.target.getVelocity()) > 0)
                 return PlanarMathUtils.rotate(diff, angle);
             else
                 return PlanarMathUtils.rotate(diff, -angle);

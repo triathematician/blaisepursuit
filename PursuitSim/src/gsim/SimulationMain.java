@@ -6,8 +6,9 @@
 package gsim;
 
 import gsim.samples.SampleSims;
-import gsim.logger.AbstractSimulationLogger;
+import gsim.logger.SimulationLogger;
 import gsim.logger.EssentialLogger;
+import java.util.ArrayList;
 import java.util.List;
 import sim.*;
 
@@ -22,21 +23,10 @@ public class SimulationMain {
 
     public static void main(String[] args) throws InstantiationException {
 
-        Simulation sim1 = SampleSims.BUG_LIGHT.getSimulation();
-        sim1.setMaxTime(1);
-        List<AbstractSimulationLogger> el = EssentialLogger.getEssentialLoggersFor(sim1);
+        Simulation sim1 = SampleSims.RANDOM_PURSUIT.getSimulation(new ArrayList<SimulationLogger>());
+        sim1.setMaxTime(100);
+        List<SimulationLogger> el = EssentialLogger.getEssentialLoggersFor(sim1);
         sim1.run();
-        for (AbstractSimulationLogger l : el) {
-            l.printData();
-        }
-
-//        Simulation sim2 = SampleSims.getCopsRobbersSimulation();
-//        sim2.setMaxTime(1);
-//        el = EssentialLogger.getEssentialLoggersFor(sim1);
-//        sim2.run();
-//        for (AbstractSimulationLogger l : el) {
-//            l.printData();
-//        }
 
     }
 

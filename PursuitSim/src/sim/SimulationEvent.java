@@ -14,20 +14,20 @@ package sim;
  * @author Elisha Peterson
  */
 public class SimulationEvent {
-    private Simulation source;
-    private DistanceCache dc;
-    private double simTime;
-    private String message;
+    public Simulation source;
+    public DistanceCache distances;
+    public double time;
+    public String message;
 
     public SimulationEvent(Simulation source, String message, DistanceCache dc, double simTime) {
         this.source = source;
-        this.dc = dc;
+        this.distances = dc;
         this.message = message;
-        this.simTime = simTime;
+        this.time = simTime;
     }
 
     public DistanceCache getDistances() {
-        return dc;
+        return distances;
     }
 
     public Simulation getSource() {
@@ -39,12 +39,11 @@ public class SimulationEvent {
     }
 
     public double getSimTime() {
-        return simTime;
+        return time;
     }
 
-    public void changeTo(String message, DistanceCache dc, double simTime) {
-        this.message = message;
-        this.simTime = simTime;
-        this.dc = dc;
+    public void update(DistanceCache dc, double simTime) {
+        this.time = simTime;
+        this.distances = dc;
     }
 }

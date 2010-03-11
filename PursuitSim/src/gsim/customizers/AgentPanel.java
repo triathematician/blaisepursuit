@@ -16,8 +16,8 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.ListCellRenderer;
-import sim.agent.AgentParameters;
-import sim.agent.Sensor.SensorEnum;
+import sim.component.agent.AgentParameters;
+import sim.comms.Sensor.SensorEnum;
 import sim.tasks.Router.RouterEnum;
 
 /**

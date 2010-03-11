@@ -15,9 +15,9 @@ import org.bm.blaise.specto.plottable.VPath;
 import org.bm.blaise.specto.plottable.VPointSet;
 import org.bm.blaise.specto.primitive.PointStyle;
 import org.bm.blaise.specto.visometry.PlottableGroup;
-import sim.agent.LocationGenerator;
-import sim.agent.SimulationAgent;
-import sim.agent.SimulationTeam;
+import sim.component.team.LocationGenerator;
+import sim.component.agent.Agent;
+import sim.component.team.Team;
 
 /**
  * <p>
@@ -36,6 +36,8 @@ public class TeamPlottableGroup extends PlottableGroup<Point2D.Double> {
     VPointSet<Point2D.Double> initialPoints;
     /** Visual for the set of paths */
     List<VPath<Point2D.Double>> paths;
+    /** The team color. */
+    Color teamColor;
 
     /**
      * Constructs for a given team logger. Also initializes and displays the
@@ -45,17 +47,23 @@ public class TeamPlottableGroup extends PlottableGroup<Point2D.Double> {
     public TeamPlottableGroup(TeamLogger log) {
         name = log.getTeam().toString();
         this.log = log;
-        paths = new ArrayList<VPath<Point2D.Double>>();
-        for (SimulationAgent sa : log.getAgents()) {
-            paths.add(new VPath<Point2D.Double>(log.getPath(sa)));
+        teamColor = log.getTeam().getParameters().getColor();
+
+        paths = new ArrayList<VPath<Point2D.Double>>(log.getAgents().size());
+        for (Agent sa : log.getAgents()) {
+            VPath<Point2D.Double> path = new VPath<Point2D.Double>(log.getPath(sa));
+            path.getStyle().setColor( sa.par.color == null
+                    ? teamColor
+                    : sa.par.color );
+            paths.add(path);
         }
         addAll(paths);
 
         initialPoints = new VPointSet<Point2D.Double>(log.getInitialPositions());
-        initialPoints.setEditable(log.getTeam() instanceof SimulationTeam);
+        initialPoints.getPointStyle().setFillColor(teamColor.brighter());
+        initialPoints.getPointStyle().setStrokeColor(teamColor);
+        initialPoints.setEditable(log.getTeam() instanceof Team);
         add(initialPoints); // keep initial points on top
-        
-        setBaseColor(log.getTeam().getParameters().getColor());
     }
 
     boolean editing = false;
@@ -69,14 +77,19 @@ public class TeamPlottableGroup extends PlottableGroup<Point2D.Double> {
             remove(paths.get(paths.size()-1));
             paths.remove(paths.size()-1);
         }
+        teamColor = log.getTeam().getParameters().getColor();
+        
         for (int i = 0; i < n; i++) {
             if (i >= paths.size()) {
-                paths.add(new VPath<Point2D.Double>(log.getPath(i)));
-                paths.get(i).getStyle().setColor(log.getTeam().getParameters().getColor());
+                Agent sa = log.getAgents().get(i);
+                VPath<Point2D.Double> path = new VPath<Point2D.Double>(log.getPath(sa));
+                path.getStyle().setColor( sa.par.color == null
+                        ? teamColor
+                        : sa.par.color );
+                paths.add(path);
                 add(paths.get(i));
-            } else {
+            } else
                 paths.get(i).setValues(log.getPath(i));
-            }
         }
         editing = false;
     }
@@ -91,7 +104,7 @@ public class TeamPlottableGroup extends PlottableGroup<Point2D.Double> {
                 Point2D.Double p = initialPoints.getSelectedValue();
                 assert p != null;
                 log.getTeam().getParameters().setLocationGenerator(LocationGenerator.DELEGATE_INSTANCE);
-                log.getAgents().get(idx).getParameters().setInitialPosition(p);
+                log.getInitialPositionSetter(idx).setInitialPosition(p);
                 fireStateChanged();
             }
         }
@@ -103,10 +116,9 @@ public class TeamPlottableGroup extends PlottableGroup<Point2D.Double> {
 
     public void setBaseColor(Color c) {
         if (c != null) {
-            initialPoints.getPointStyle().setFillColor(c);
-            for (VPath<Point2D.Double> path : paths) {
-                path.getStyle().setColor(c);
-            }
+            teamColor = c;
+            initialPoints.getPointStyle().setFillColor(teamColor.brighter());
+            initialPoints.getPointStyle().setStrokeColor(teamColor);
             fireStateChanged();
         }
     }

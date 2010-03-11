@@ -6,8 +6,8 @@
 package sim.tasks;
 
 import java.awt.geom.Point2D;
-import sim.agent.SimulationAgent;
-import sim.agent.AgentSensorProxy;
+import sim.component.agent.Agent;
+import sim.component.VisiblePlayer;
 
 /**
  * <p>
@@ -18,63 +18,30 @@ import sim.agent.AgentSensorProxy;
  * @author Elisha Peterson
  */
 public class Task {
-    private SimulationAgent owner;
-    private AgentSensorProxy target;
-    private double priority = 1.0;
-    private Type type = Type.SEEK;
+    public Agent owner;
+    public Point2D.Double ownerLoc;
+    public VisiblePlayer target;
+    public Point2D.Double targetLoc;
+    public double priority = 1.0;
+    public Type type = Type.SEEK;
 
     /** Constructs the task. */
-    public Task(SimulationAgent owner, AgentSensorProxy target, double priority, Type taskType) {
+    public Task(Agent owner, VisiblePlayer target, double priority, Type taskType) {
         this.owner = owner;
+        this.ownerLoc = owner.state.position;
         this.target = target;
+        this.targetLoc = target.getPosition();
         this.priority = priority;
         this.type = taskType;
+        if (ownerLoc.x == targetLoc.x && ownerLoc.y == targetLoc.y)
+            throw new IllegalArgumentException("Tasks should not be created with targets the same as owners!");
     }
 
     @Override
     public String toString() {
-        return "Task(target="+target+", priority="+priority+", seekType="+type+")";
-    }
-
-
-    /** @return agent/sim component responsible for implementing or refusing this task. */
-    public SimulationAgent getOwner() {
-        return owner;
-    }
-
-    /** @return position of the owner */
-    public Point2D.Double getOwnerPosition() {
-        return owner.getSensorProxy().getPosition();
-    }
-
-    /** @return top speed of the owner */
-    public double getOwnerSpeed() {
-        return owner.getParameters().getTopSpeed();
-    }
-
-    /** @return target element of the task */
-    public AgentSensorProxy getTarget() {
-        return target;
-    }
-
-    /** @return position of the target */
-    public Point2D.Double getTargetPosition() {
-        return target.getPosition();
-    }
-
-    /** @return velocity of the target */
-    public Point2D.Double getTargetVelocity() {
-        return target.getVelocity();
-    }
-
-    /** @return priority of the task. */
-    public double getPriority(){
-        return priority;
-    }
-
-    /** @return true if this task is a "seeking" type task, false if it is an "evading" type task */
-    public Type getTaskType() {
-        return type;
+        return "Task."+type+"["+owner+String.format("@(%.2f,%.2f)", owner.getPosition().x, owner.getPosition().y)
+                + " -> "+target+String.format("@(%.2f,%.2f)", target.getPosition().x, target.getPosition().y)
+                + ", priority="+priority+"]";
     }
 
     public enum Type {
@@ -86,17 +53,9 @@ public class Task {
         private String name;
         /** Stores an int multiplier for the task, determining whether getting close is a good thing (1)
          * or a bad thing (-1). */
-        private int multiplier;
-        Type(String name, int multiplier) {
-            this.name = name;
-            this.multiplier = multiplier;
-        }
-        public String getName() {
-            return name;
-        }
-        public int getMultiplier() {
-            return multiplier;
-        }
+        public int multiplier;
+        Type(String name, int multiplier) { this.name = name; this.multiplier = multiplier; }
+        @Override public String toString() { return name; }
     }
 
 }

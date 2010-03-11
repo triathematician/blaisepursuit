@@ -15,8 +15,8 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import sim.agent.SimulationTeam;
-import sim.agent.TeamParameters;
+import sim.component.team.Team;
+import sim.component.team.TeamParameters;
 
 /**
  *

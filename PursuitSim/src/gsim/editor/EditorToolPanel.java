@@ -5,6 +5,8 @@
 
 package gsim.editor;
 
+import sim.comms.Sensor;
+import sim.component.team.LocationGenerator;
 import gui.MPanel;
 import gui.RollupPanel;
 import java.awt.Component;
@@ -17,8 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
-import sim.SimulationComponent;
-import sim.agent.*;
+import sim.SimComponent;
 import sim.tasks.Router;
 import sim.tasks.TaskChooser;
 import sim.tasks.Tasker;
@@ -36,7 +37,7 @@ public class EditorToolPanel extends RollupPanel {
     private void initComponents() {
         ToolList tl;
         add(new MPanel("Simulation Components", tl = new ToolList()));
-        tl.setActions(SimActions.getActionsBySuper(SimulationComponent.class));        
+        tl.setActions(SimActions.getActionsBySuper(SimComponent.class));
         add(new MPanel("Location Generators", tl = new ToolList()));
         tl.setActions(SimActions.getActionsBySuper(LocationGenerator.class));
         add(new MPanel("Sensors", tl = new ToolList()));
@@ -53,10 +54,12 @@ public class EditorToolPanel extends RollupPanel {
     /** Items are displayed as icons or possibly text. */
     public static class ToolList extends JList {
         DefaultListModel model;
+        
         public ToolList(List<Action> actions) {
             this();
             setActions(actions);
         }
+        
         public ToolList() {
             setCellRenderer(new ListCellRenderer(){
                 JLabel label = new JLabel();
@@ -79,6 +82,7 @@ public class EditorToolPanel extends RollupPanel {
             });
 
             setDragEnabled(true);
+            setTransferHandler(SimComponentTransferHandler.INSTANCE);
             
             setLayoutOrientation(JList.HORIZONTAL_WRAP);
             setVisibleRowCount(-1);
@@ -86,6 +90,10 @@ public class EditorToolPanel extends RollupPanel {
             model = new DefaultListModel();
             setModel(model);
             setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        }
+
+        public Action getSelectedAction() {
+            return (Action) getSelectedValue();
         }
         
         void setActions(List<Action> actions) {

@@ -17,10 +17,10 @@ import org.bm.blaise.specto.primitive.PointStyle;
 import org.bm.blaise.specto.visometry.PlottableGroup;
 import org.bm.blaise.specto.visometry.Visometry;
 import org.bm.blaise.specto.visometry.VisometryGraphics;
-import sim.agent.InitialPositionSetter;
-import sim.agent.SimulationAgent;
-import sim.agent.SimulationPath;
-import sim.agent.SimulationRandomPath;
+import sim.component.InitialPositionSetter;
+import sim.component.agent.Agent;
+import sim.component.ParametricPath;
+import sim.component.RandomPath;
 
 /**
  * <p>
@@ -54,11 +54,11 @@ public class AgentPlottable extends PlottableGroup<Point2D.Double> {
         initialPoint = new VPoint<Point2D.Double>(log.getInitialPosition());
         initialPoint.setLabel(name);
         initialPoint.setCoordVisible(false);
-        setEditable(log.getAgent() instanceof SimulationAgent);
+        setEditable(log.getAgent() instanceof Agent);
         if ( log.getAgent() instanceof InitialPositionSetter )
             add(initialPoint); // keep initial points on top
-        if (log.getAgent() instanceof SimulationAgent) {
-            setColor(((SimulationAgent) log.getAgent()).getParameters().getColor());
+        if (log.getAgent() instanceof Agent) {
+            setColor(((Agent) log.getAgent()).getParameters().getColor());
         }
     }
 
@@ -126,7 +126,7 @@ public class AgentPlottable extends PlottableGroup<Point2D.Double> {
             if (path.getValues().length > 0) {
                 canvas.setPointStyle(initialPoint.getStyle());
                 Point2D.Double lastPoint = path.getValues()[Math.min((int) time, path.getValues().length-1)];
-                canvas.drawPoint(lastPoint);
+                canvas.drawPoint(lastPoint, selected);
             }
         } else {
             super.paintComponent(canvas);

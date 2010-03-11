@@ -4,7 +4,12 @@
  */
 package sim;
 
+import gsim.logger.SimulationLogger;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
 
 /**
@@ -14,18 +19,21 @@ import javax.swing.event.EventListenerList;
  *
  * @author Elisha Peterson
  */
-public class Simulation extends SimulationComposite implements Runnable, Serializable {
+public class Simulation extends SimComposite implements Runnable, Serializable {
+
+    /** Global variable to store the "active" simulation. */
+    public static Simulation ACTIVE_SIM = null;
 
     //
     // PARAMETERS
     //
 
     /** Name */
-    String name;
+    String name = "Simulation";
     /** Amount of time between iterations. */
     double timePerStep = .1;
     /** Time to halt simulation. */
-    double maxTime = 100;
+    double maxTime = 30;
 
     //
     // STATE VARIABLES
@@ -36,23 +44,27 @@ public class Simulation extends SimulationComposite implements Runnable, Seriali
     /** Cache of information about player locations. */
     transient DistanceCache dt;
 
+
     //
     // CONSTRUCTORS
     //
 
     public Simulation() {
-        super();
     }
 
     public Simulation(String name) {
         this.name = name;
     }
 
-    public Simulation(String name, SimulationComponent... components) {
+    public Simulation(String name, SimComponent... components) {
         this.name = name;
-        for (SimulationComponent sc : components) {
+        for (SimComponent sc : components)
             addComponent(sc);
-        }
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 
     //
@@ -66,11 +78,12 @@ public class Simulation extends SimulationComposite implements Runnable, Seriali
 
     /** @param newValue new running time of the simulation */
     public void setMaxTime(double newValue) {
-        if (newValue < 0) {
+        if (newValue < 0)
             throw new IllegalArgumentException("Max Time < 0: " + newValue);
-        }
+
         if (this.maxTime != newValue) {
             this.maxTime = newValue;
+            fireStateChanged();
         }
     }
 
@@ -81,11 +94,12 @@ public class Simulation extends SimulationComposite implements Runnable, Seriali
 
     /** @param newValue new time between steps */
     public void setTimePerStep(double newValue) {
-        if (newValue <= 0) {
+        if (newValue <= 0)
             throw new IllegalArgumentException("Time per step <= 0: " + newValue);
-        }
+        
         if (this.timePerStep != newValue) {
             this.timePerStep = newValue;
+            fireStateChanged();
         }
     }
 
@@ -94,8 +108,45 @@ public class Simulation extends SimulationComposite implements Runnable, Seriali
     }
 
     public void setName(String name) {
-        this.name = name;
+        if ( ! this.name.equals(name)) {
+            this.name = name;
+            fireStateChanged();
+        }
     }
+
+    //
+    // COMPOSITIONAL
+    //
+
+    @Override
+    public boolean addComponent(SimComponent o) {
+        if (super.addComponent(o)) {
+            fireStateChanged();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean addComponents(Collection<? extends SimComponent> c) {
+        if (super.addComponents(c)) {
+            fireStateChanged();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean removeComponent(SimComponent o) {
+        if (super.removeComponent(o)) {
+            fireStateChanged();
+            return true;
+        }
+        return false;
+    }
+
+
+
 
     
 
@@ -113,9 +164,8 @@ public class Simulation extends SimulationComposite implements Runnable, Seriali
     public final void run() {
         preRun();
         try {
-            while (!isFinished()) {
+            while (!isFinished())
                 iterate();
-            }
         } catch (SimulationTerminatedException ex) {
             System.out.println("Victory achieved by one of the teams! ("+ex.explanation+")");
         }
@@ -143,15 +193,16 @@ public class Simulation extends SimulationComposite implements Runnable, Seriali
         super.handleMajorEvents(dt, curTime);                       // Step 1. Handles any major events that arise after recalculation
         super.checkVictory(dt, curTime);                            // Step 2. Checks for and handles victory elements
 
-        fireIterationEvent(curTime);                                // Step X. Notify listeners of change in simulation state
+        fireSimIterateEvent(dt, curTime);                           // Step X. Notify listeners of change in simulation state
 
         super.processIncomingCommEvents(curTime);                   // Step 3. Process incoming comm events
         super.gatherSensoryData(dt);                                // Step 4. Sense environment
         super.developPointOfView();                                 // Step 5. Consolidate information to form opinion about the environment
         super.generateTasks(dt);                                    // Step 6. Generate tasks based on point-of-view
-        super.setControlVariables(curTime, timePerStep);            // Step 7. Initialize control variables for this step
-        super.adjustState(timePerStep);                             // Step 8. Adjust state based on the control variables
-        super.sendAllCommEvents(curTime);                           // Step 9. Broadcast sensory/tasking events to sub-components
+        super.sendAllCommEvents(curTime);                           // Step 7. Broadcast sensory/tasking events to sub-components
+
+        super.setControlVariables(curTime, timePerStep);            // Step 8. Initialize control variables for this step
+        super.adjustState(timePerStep);                             // Step 9. Adjust state based on the control variables
 
         curStep++;
     }
@@ -167,45 +218,64 @@ public class Simulation extends SimulationComposite implements Runnable, Seriali
         curStep = 0;
         dt = new DistanceCache(this);
         dt.recalculate(0);
-        fireSimulationEvent("Reset", dt, 0.0);
+        fireSimResetEvent(dt, 0.0);
+    }
+    
+    //
+    // SIMULATION EVENT HANDLING CODE
+    //
+
+    /** Event handling code */
+    transient protected SimulationEvent simResetEvent = new SimulationEvent(this, "Reset", null, 0);
+    transient protected SimulationEvent simIterateEvent = new SimulationEvent(this, "Iterate", null, 0);
+    protected ArrayList<SimulationEventListener> simListeners = new ArrayList<SimulationEventListener>();
+
+    public void addSimulationEventListener(SimulationEventListener l) { simListeners.add(l); }
+    public void removeSimulationEventListener(SimulationEventListener l) { simListeners.remove(l); }
+    public void removeAllSimulationEventListeners() { simListeners.clear(); }
+
+    protected void fireSimResetEvent(DistanceCache dc, double curTime) {
+        simResetEvent.update(dc, curTime);
+        simResetEvent = new SimulationEvent(this, "Reset", dc, curTime);
+        for (SimulationEventListener sel : simListeners)
+            sel.handleResetEvent(simResetEvent);
     }
 
-    /** Notifies listeners of a change in the simulation. */
-    private void fireIterationEvent(double curTime) {
-        fireSimulationEvent("Iteration", dt, curTime);
+    protected void fireSimIterateEvent(DistanceCache dc, double curTime) {
+        simIterateEvent.update(dc, curTime);
+        simIterateEvent = new SimulationEvent(this, "Iterate", dc, curTime);
+        for (SimulationEventListener sel : simListeners)
+            sel.handleIterationEvent(simIterateEvent);
     }
-    /** Event handling code */
-    transient protected SimulationEvent simEvent = null;
+
+    
+    //
+    // EVENT HANDLING
+    //
+
+    transient protected ChangeEvent changeEvent = null;
     protected EventListenerList listenerList = new EventListenerList();
 
-    public void addSimulationEventListener(SimulationEventListener l) {
-        listenerList.add(SimulationEventListener.class, l);
+    public void addChangeListener(ChangeListener l) {
+        listenerList.add(ChangeListener.class, l);
     }
 
-    public void removeChangeListener(SimulationEventListener l) {
-        listenerList.remove(SimulationEventListener.class, l);
+    public void removeChangeListener(ChangeListener l) {
+        listenerList.remove(ChangeListener.class, l);
     }
 
     public void removeAllChangeListeners() {
-        listenerList = new EventListenerList();
+        for (ChangeListener cl : listenerList.getListeners(ChangeListener.class))
+            listenerList.remove(ChangeListener.class, cl);
     }
 
-    protected void fireSimulationEvent(String message, DistanceCache dc, double curTime) {
+    public void fireStateChanged() {
         Object[] listeners = listenerList.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == SimulationEventListener.class) {
-                if (simEvent == null) {
-                    simEvent = new SimulationEvent(this, message, dc, curTime);
-                } else {
-                    simEvent.changeTo(message, dc, curTime);
-                }
-                ((SimulationEventListener) listeners[i + 1]).handleSimulationEvent(simEvent);
+        for (int i = listeners.length - 2; i >= 0; i -= 2)
+            if (listeners[i] == ChangeListener.class) {
+                if (changeEvent == null)
+                    changeEvent = new ChangeEvent(this);
+                ((ChangeListener) listeners[i + 1]).stateChanged(changeEvent);
             }
-        }
-    }
-
-    @Override
-    public String toString() {
-        return name;
     }
 }
