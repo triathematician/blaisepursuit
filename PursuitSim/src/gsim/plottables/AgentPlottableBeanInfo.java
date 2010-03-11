@@ -93,15 +93,15 @@ public class AgentPlottableBeanInfo extends SimpleBeanInfo {
     private static final int METHOD_add0 = 0;
     private static final int METHOD_addAll1 = 1;
     private static final int METHOD_clear2 = 2;
-    private static final int METHOD_isClickablyCloseTo3 = 3;
-    private static final int METHOD_mouseClicked4 = 4;
-    private static final int METHOD_mouseDragged5 = 5;
-    private static final int METHOD_mouseEntered6 = 6;
-    private static final int METHOD_mouseExited7 = 7;
-    private static final int METHOD_mouseMoved8 = 8;
-    private static final int METHOD_mousePressed9 = 9;
-    private static final int METHOD_mouseReleased10 = 10;
-    private static final int METHOD_paintComponent11 = 11;
+    private static final int METHOD_draw3 = 3;
+    private static final int METHOD_isClickablyCloseTo4 = 4;
+    private static final int METHOD_mouseClicked5 = 5;
+    private static final int METHOD_mouseDragged6 = 6;
+    private static final int METHOD_mouseEntered7 = 7;
+    private static final int METHOD_mouseExited8 = 8;
+    private static final int METHOD_mouseMoved9 = 9;
+    private static final int METHOD_mousePressed10 = 10;
+    private static final int METHOD_mouseReleased11 = 11;
     private static final int METHOD_recomputeAtTime12 = 12;
     private static final int METHOD_remove13 = 13;
     private static final int METHOD_stateChanged14 = 14;
@@ -121,25 +121,25 @@ public class AgentPlottableBeanInfo extends SimpleBeanInfo {
             methods[METHOD_addAll1].setDisplayName ( "" );
             methods[METHOD_clear2] = new MethodDescriptor(org.bm.blaise.specto.visometry.PlottableGroup.class.getMethod("clear", new Class[] {})); // NOI18N
             methods[METHOD_clear2].setDisplayName ( "" );
-            methods[METHOD_isClickablyCloseTo3] = new MethodDescriptor(org.bm.blaise.specto.visometry.PlottableGroup.class.getMethod("isClickablyCloseTo", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_isClickablyCloseTo3].setDisplayName ( "" );
-            methods[METHOD_mouseClicked4] = new MethodDescriptor(org.bm.blaise.specto.visometry.AbstractDynamicPlottable.class.getMethod("mouseClicked", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_mouseClicked4].setDisplayName ( "" );
-            methods[METHOD_mouseDragged5] = new MethodDescriptor(org.bm.blaise.specto.visometry.AbstractDynamicPlottable.class.getMethod("mouseDragged", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_mouseDragged5].setDisplayName ( "" );
-            methods[METHOD_mouseEntered6] = new MethodDescriptor(org.bm.blaise.specto.visometry.AbstractDynamicPlottable.class.getMethod("mouseEntered", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_mouseEntered6].setDisplayName ( "" );
-            methods[METHOD_mouseExited7] = new MethodDescriptor(org.bm.blaise.specto.visometry.AbstractDynamicPlottable.class.getMethod("mouseExited", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_mouseExited7].setDisplayName ( "" );
-            methods[METHOD_mouseMoved8] = new MethodDescriptor(org.bm.blaise.specto.visometry.AbstractDynamicPlottable.class.getMethod("mouseMoved", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_mouseMoved8].setDisplayName ( "" );
-            methods[METHOD_mousePressed9] = new MethodDescriptor(org.bm.blaise.specto.visometry.AbstractDynamicPlottable.class.getMethod("mousePressed", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_mousePressed9].setDisplayName ( "" );
-            methods[METHOD_mouseReleased10] = new MethodDescriptor(org.bm.blaise.specto.visometry.AbstractDynamicPlottable.class.getMethod("mouseReleased", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_mouseReleased10].setDisplayName ( "" );
-            methods[METHOD_paintComponent11] = new MethodDescriptor(org.bm.blaise.specto.visometry.PlottableGroup.class.getMethod("paintComponent", new Class[] {org.bm.blaise.specto.visometry.VisometryGraphics.class})); // NOI18N
-            methods[METHOD_paintComponent11].setDisplayName ( "" );
-            methods[METHOD_recomputeAtTime12] = new MethodDescriptor(org.bm.blaise.specto.visometry.PlottableGroup.class.getMethod("recomputeAtTime", new Class[] {org.bm.blaise.specto.visometry.Visometry.class, org.bm.blaise.specto.visometry.VisometryGraphics.class, org.bm.blaise.sequor.timer.TimeClock.class})); // NOI18N
+            methods[METHOD_draw3] = new MethodDescriptor(gsim.plottables.AgentPlottable.class.getMethod("draw", new Class[] {org.bm.blaise.specto.visometry.VisometryGraphics.class})); // NOI18N
+            methods[METHOD_draw3].setDisplayName ( "" );
+            methods[METHOD_isClickablyCloseTo4] = new MethodDescriptor(org.bm.blaise.specto.visometry.PlottableGroup.class.getMethod("isClickablyCloseTo", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_isClickablyCloseTo4].setDisplayName ( "" );
+            methods[METHOD_mouseClicked5] = new MethodDescriptor(org.bm.blaise.specto.visometry.DynamicPlottable.class.getMethod("mouseClicked", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_mouseClicked5].setDisplayName ( "" );
+            methods[METHOD_mouseDragged6] = new MethodDescriptor(org.bm.blaise.specto.visometry.DynamicPlottable.class.getMethod("mouseDragged", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_mouseDragged6].setDisplayName ( "" );
+            methods[METHOD_mouseEntered7] = new MethodDescriptor(org.bm.blaise.specto.visometry.DynamicPlottable.class.getMethod("mouseEntered", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_mouseEntered7].setDisplayName ( "" );
+            methods[METHOD_mouseExited8] = new MethodDescriptor(org.bm.blaise.specto.visometry.DynamicPlottable.class.getMethod("mouseExited", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_mouseExited8].setDisplayName ( "" );
+            methods[METHOD_mouseMoved9] = new MethodDescriptor(org.bm.blaise.specto.visometry.DynamicPlottable.class.getMethod("mouseMoved", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_mouseMoved9].setDisplayName ( "" );
+            methods[METHOD_mousePressed10] = new MethodDescriptor(org.bm.blaise.specto.visometry.DynamicPlottable.class.getMethod("mousePressed", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_mousePressed10].setDisplayName ( "" );
+            methods[METHOD_mouseReleased11] = new MethodDescriptor(org.bm.blaise.specto.visometry.DynamicPlottable.class.getMethod("mouseReleased", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_mouseReleased11].setDisplayName ( "" );
+            methods[METHOD_recomputeAtTime12] = new MethodDescriptor(gsim.plottables.AgentPlottable.class.getMethod("recomputeAtTime", new Class[] {org.bm.blaise.specto.visometry.Visometry.class, org.bm.blaise.specto.visometry.VisometryGraphics.class, org.bm.blaise.sequor.timer.TimeClock.class})); // NOI18N
             methods[METHOD_recomputeAtTime12].setDisplayName ( "" );
             methods[METHOD_remove13] = new MethodDescriptor(org.bm.blaise.specto.visometry.PlottableGroup.class.getMethod("remove", new Class[] {org.bm.blaise.specto.visometry.Plottable.class})); // NOI18N
             methods[METHOD_remove13].setDisplayName ( "" );

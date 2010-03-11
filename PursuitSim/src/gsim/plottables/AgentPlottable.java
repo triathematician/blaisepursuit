@@ -116,20 +116,19 @@ public class AgentPlottable extends PlottableGroup<Point2D.Double> {
     }
 
     @Override
-    public void paintComponent(VisometryGraphics<Double> canvas) {
+    public void draw(VisometryGraphics<Double> canvas) {
         if (isAnimationOn()) {
             Color fill = getColor();
             initialPoint.getStyle().setFillColor(null);
-            super.paintComponent(canvas);
+            super.draw(canvas);
             initialPoint.getStyle().setFillColor(fill);
 
             if (path.getValues().length > 0) {
-                canvas.setPointStyle(initialPoint.getStyle());
                 Point2D.Double lastPoint = path.getValues()[Math.min((int) time, path.getValues().length-1)];
-                canvas.drawPoint(lastPoint, selected);
+                canvas.drawPoint(lastPoint, initialPoint.getStyle());
             }
         } else {
-            super.paintComponent(canvas);
+            super.draw(canvas);
         }
     }
 }

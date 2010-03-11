@@ -16,7 +16,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyEditorManager;
 import java.util.List;
 import java.util.ArrayList;
@@ -45,7 +44,6 @@ import gsim.logger.*;
 import gsim.plottables.*;
 import gsim.samples.SampleSims;
 import java.awt.Dimension;
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import javax.swing.JEditorPane;
 import javax.swing.JScrollPane;
@@ -143,7 +141,7 @@ public class SimFrame extends javax.swing.JFrame
         if (grid1 == null)
             grid1 = new PlaneGrid();
         if (axes1 == null)
-            axes1 = PlaneAxes.instance(PlaneAxes.AxisStyle.BOX);
+            axes1 = new PlaneAxes("x", "y", PlaneAxes.Style.BOX);
         if (grid2 == null)
             grid2 = new PlaneGrid();
         if (axes2 == null)
