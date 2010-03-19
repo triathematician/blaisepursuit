@@ -23,20 +23,53 @@ public class PolygonIntersectionUtils {
 
     private static final boolean VERBOSE = false;
 
-    public static Point2D.Double[] intersect(Point2D.Double[] poly1, Point2D.Double[] poly2) {
+    /**
+     * Intersects two <b>CONVEX</b> polygons in the plane.
+     * @param poly1 first polygon
+     * @param poly2 second polygon
+     * @return a new polygon representing the intersection, or one of the original polygons if
+     *   it is contained entirely within another polygon
+     */
+    public static Point2D.Double[] intersectionOfConvexPolygons(Point2D.Double[] poly1, Point2D.Double[] poly2) {
+        boolean inside = true;
+        for (int i = 0; i < poly1.length; i++)
+            if (!PolygonUtils.inPolygon(poly1[i], poly2)) {
+                inside = false;
+                break;
+            }
+        if (inside)
+            return poly1;
+
+        inside = true;
+        for (int i = 0; i < poly2.length; i++)
+            if (!PolygonUtils.inPolygon(poly2[i], poly1)) {
+                inside = false;
+                break;
+            }
+        if (inside)
+            return poly2;
+
         if (VERBOSE) System.out.println("---------------");
         PolyGraph pg = PolyGraph.intersectionInstance(poly1, poly2);
-        Point2D.Double v0 = null,v1 = null;
-        for (Entry<Point2D.Double,List<Point2D.Double>> e : pg.adjs.entrySet()) {
+        Point2D.Double v0 = null, v1 = null;
+        for (Entry<Point2D.Double,List<Point2D.Double>> e : pg.adjs.entrySet())
             if (e.getValue().size() > 0) {
                 v0 = e.getKey();
                 v1 = e.getValue().get(0);
             }
-        }
         if (v0 == null) {
             return new Point2D.Double[]{};
         }
-        Point2D.Double[] result = pg.traceLeft(v0, v1);
+        Point2D.Double[] result;
+        try {
+            result = pg.traceLeft(v0, v1);
+        } catch (Exception ex) {
+            System.out.println("Failed to find polygon intersection: " + ex);
+            System.out.println("... polygon 1 = " + Arrays.toString(poly1));
+            System.out.println("... polygon 2 = " + Arrays.toString(poly2));
+            System.out.println("... returning empty array");
+            return new Point2D.Double[]{};
+        }
         if (VERBOSE) System.out.println("  RESULT: " + Arrays.toString(result));
         return result;
     }

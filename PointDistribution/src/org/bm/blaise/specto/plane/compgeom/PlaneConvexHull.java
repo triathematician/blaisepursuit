@@ -35,22 +35,18 @@ public class PlaneConvexHull extends VPolygon<Point2D.Double> {
     }
 
     @Override
-    public void paintComponent(VisometryGraphics<Double> vg) {
+    public void draw(VisometryGraphics<Double> vg) {
         vg.setPointStyle(pointStyle);
         vg.drawPoints(values);
         if (labelsVisible) {
-            if (labelStyle != null) {
+            if (labelStyle != null)
                 vg.setStringStyle(labelStyle);
-            }
-            for (int i = 0; i < values.length; i++) {
+            for (int i = 0; i < values.length; i++)
                 vg.drawString(getValueString(i), values[i], 5, -5);
-            }
         }
-        
-        vg.setShapeStyle(shapeStyle);
-        vg.drawClosedPath(hull);
-        if (pointsVisible) {
+
+        vg.drawShape(hull, shapeStyle);
+        if (pointsVisible)
             vg.drawPoints(hull);
-        }
     }
 }

@@ -31,9 +31,9 @@ public class PolygonUtilsTest {
     @Test
     public void testAreaOfPolygon() {
         System.out.println("area");
-        assertEquals(0.0, PolygonUtils.area(new Double[]{new Double(0,0), new Double(1,0)}), TOL);
-        assertEquals(0.5, PolygonUtils.area(new Double[]{new Double(0,0), new Double(1,0), new Double(0,1)}), TOL);
-        assertEquals(1.0, PolygonUtils.area(new Double[]{new Double(0,0), new Double(1,0), new Double(1,1), new Double(0,1)}), TOL);
+        assertEquals(0.0, PolygonUtils.areaOf(new Double[]{new Double(0,0), new Double(1,0)}), TOL);
+        assertEquals(0.5, PolygonUtils.areaOf(new Double[]{new Double(0,0), new Double(1,0), new Double(0,1)}), TOL);
+        assertEquals(1.0, PolygonUtils.areaOf(new Double[]{new Double(0,0), new Double(1,0), new Double(1,1), new Double(0,1)}), TOL);
     }
 
     /**
@@ -82,16 +82,16 @@ public class PolygonUtilsTest {
     public void testClipPolygon() {
         System.out.println("clipPolygon");
 
-        PolygonIntersectionUtils.intersect(
+        PolygonIntersectionUtils.intersectionOfConvexPolygons(
                 new Double[]{new Double(0,0), new Double(1,0), new Double(1,1), new Double(0,1)},
                 new Double[]{new Double(-.25,.5), new Double(.5,-.25), new Double(.5,1.25) } );
-        PolygonIntersectionUtils.intersect(
+        PolygonIntersectionUtils.intersectionOfConvexPolygons(
                 new Double[]{ new Double(.5,.5), new Double(-.1,.3), new Double(1.5,.2) },
                 new Double[]{ new Double(0,0), new Double(1,0), new Double(1,1), new Double(0,1) } );        
-        PolygonIntersectionUtils.intersect(
+        PolygonIntersectionUtils.intersectionOfConvexPolygons(
                 new Double[]{ new Double(.725,.5), PlanarMathUtils.polarPointAtInfinity(Math.PI/2), PlanarMathUtils.polarPointAtInfinity(Math.PI) },
                 new Double[]{ new Double(0,0), new Double(1,0), new Double(1,1), new Double(0,1) } );
-        PolygonIntersectionUtils.intersect(
+        PolygonIntersectionUtils.intersectionOfConvexPolygons(
                 new Double[]{ new Double(0.7249999999999968, 0.5163775285245027), new Double(0.7212618045637035, 0.5000000000000093), PlanarMathUtils.polarPointAtInfinity(-1.3074618452021987), PlanarMathUtils.polarPointAtInfinity(0.23268863178971982) },
                 new Double[]{ new Double(0,0), new Double(1,0), new Double(1,1), new Double(0,1) } );
     }

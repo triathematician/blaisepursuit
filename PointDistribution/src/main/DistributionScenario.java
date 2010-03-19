@@ -32,6 +32,8 @@ public class DistributionScenario implements DistributionScenarioInterface {
 
     /** Points within the scenario. */
     Point2D.Double[] points;
+    /** Stores the "movement" within the scenario (from a prior position. */
+    Point2D.Double[] movement;
     /** Polygon representing the boundaries of the scenario. */
     Point2D.Double[] polygon;
 
@@ -47,11 +49,17 @@ public class DistributionScenario implements DistributionScenarioInterface {
     transient HashMap<Point2D.Double, Double> areas;
     /** Stores adjacencies among points in the scenario. */
     transient HashMap<Point2D.Double, Set<Point2D.Double>> adjacencyMap;
+    /** Describes those points that are adjacent to boundary. */
+    transient HashSet<Point2D.Double> boundaryPoints;
 
     /** Stores average area of polygons. */
     transient double areaAverage = -1.0;
-    /** Stores variance in area of polygons. */
-    transient double areaVariance = -1.0;
+    /** Stores max difference of area from mean (L-infinity norm) */
+    transient double ellInfinity = -1.0;
+    /** Stores sum of differences of areas from mean (L-1 norm) */
+    transient double ellOne = -1.0;
+    /** Stores sum of squares of differences of areas from mean (L-2 norm) */
+    transient double ellTwo = -1.0;
 
     //
     // CONSTRUCTOR
@@ -70,6 +78,9 @@ public class DistributionScenario implements DistributionScenarioInterface {
     public DistributionScenario(Point2D.Double[] polygon, Point2D.Double[] points) {
         this.polygon = polygon;
         this.points = points;
+        this.movement = new Point2D.Double[points.length];
+        for (int i = 0; i < points.length; i++)
+            movement[i] = new Point2D.Double();
         recompute();
     }
 
@@ -102,6 +113,11 @@ public class DistributionScenario implements DistributionScenarioInterface {
     }
 
     public void setPoints(Point2D.Double[] points) {
+        if (points.length == this.points.length)
+            for (int i = 0; i < points.length; i++)
+                movement[i] = new Point2D.Double(points[i].x - this.points[i].x, points[i].y - this.points[i].y);
+        else
+            this.movement = new Point2D.Double[points.length];
         this.points = points;
         recompute();
     }
@@ -111,16 +127,33 @@ public class DistributionScenario implements DistributionScenarioInterface {
     }
 
     public void setPoints(int i, Point2D.Double p) {
+        movement[i] = new Point2D.Double(p.x - movement[i].x, p.y - movement[i].y);
         points[i] = p;
         recompute();
+    }
+
+    public Point2D.Double[] getLastMovement() {
+        return movement;
+    }
+
+    public Point2D.Double getLastMovement(int i) {
+        return movement[i];
     }
 
     public double getAreaAverage() {
         return areaAverage;
     }
 
-    public double getAreaVariance() {
-        return areaVariance;
+    public double getAreaMaxDifference() {
+        return ellInfinity;
+    }
+
+    public double getAreaSumDifference() {
+        return ellOne;
+    }
+
+    public double getAreaSumSquareDifference() {
+        return ellTwo;
     }
 
     //
@@ -135,58 +168,88 @@ public class DistributionScenario implements DistributionScenarioInterface {
         return polygonMap.get(point);
     }
 
-    public Set<Point2D.Double> getPointsAdjacentTo(Point2D.Double point) {
+    public Set<Point2D.Double> pointsAdjacentTo(Point2D.Double point) {
         return adjacencyMap.get(point);
     }
+
+    public boolean isAdjacentToBoundary(Point2D.Double point) {
+        return boundaryPoints.contains(point);
+    }
+
 
     //
     // CALCULATION
     //
 
+    public boolean computing = false;
+
     /** Recomputes the Voronoi tesselation, the adjacencies, and the areas. */
     void recompute() {
-        // convert points to list, and compute Voronoi tesselation
-        List<Point2D.Double> aPoints = new ArrayList<Point2D.Double>();         
-        for (int i = 0; i < points.length; i++) { aPoints.add(points[i]); }
-        voronoi = new VoronoiFrontier(aPoints);
+        if (computing) {
+            System.out.println("Attempting to recompute while already computing...");
+            return;
+        }
+        computing = true;
+        try {
+            // convert points to list, and compute Voronoi tesselation
+            List<Point2D.Double> aPoints = new ArrayList<Point2D.Double>();
+            for (int i = 0; i < points.length; i++) { aPoints.add(points[i]); }
+            voronoi = new VoronoiFrontier(aPoints);
 
-        // create the polygon map and compute the areas
-        if (polygonMap == null) {
-            polygonMap = new HashMap<Point2D.Double, Point2D.Double[]>();
-            areas = new HashMap<Point2D.Double, Double>();
-            adjacencyMap = new HashMap<Point2D.Double, Set<Point2D.Double>>();
-        } else {
-            polygonMap.clear();
-            areas.clear();
-            adjacencyMap.clear();
-        }
-        double total = 0.0;
-        double cur;
-        for (Point2D.Double p : points) {
-            Point2D.Double[] pClip = PolygonIntersectionUtils.intersect(voronoi.getPolygonMap().get(p).getVerticesAsArray(), polygon);
-            polygonMap.put(p, pClip);
-            cur = PolygonUtils.area(pClip);
-            areas.put(p, cur);
-            total += cur;
-        }
-        areaAverage = total / points.length;
-        // variance of areas
-        total = 0.0;
-        for (Point2D.Double p : points) {
-            total += (areas.get(p)-areaAverage) * (areas.get(p)-areaAverage);
-        }
-        areaVariance = total / points.length;
+            // create the polygon map and compute the areas
+            if (polygonMap == null) {
+                polygonMap = new HashMap<Point2D.Double, Point2D.Double[]>();
+                areas = new HashMap<Point2D.Double, Double>();
+                adjacencyMap = new HashMap<Point2D.Double, Set<Point2D.Double>>();
+                boundaryPoints = new HashSet<Point2D.Double>();
+            } else {
+                polygonMap.clear();
+                areas.clear();
+                adjacencyMap.clear();
+                boundaryPoints.clear();
+            }
 
-        // create the adjacency map
-        for (Point2D.Double[] adj : voronoi.getAdjacencyList()) {
-            if (!adjacencyMap.containsKey(adj[0])) {
-                adjacencyMap.put(adj[0], new HashSet<Point2D.Double>());
+            // clip polygons & compute total area
+            double totalArea = 0.0;
+            double curArea;
+            for (Point2D.Double p : points) {
+                Point2D.Double[] ptPoly = voronoi.getPolygonMap().get(p).getVerticesAsArray();
+                Point2D.Double[] pClip = PolygonIntersectionUtils.intersectionOfConvexPolygons(ptPoly, polygon);
+                if (pClip != ptPoly)
+                    boundaryPoints.add(p);
+                polygonMap.put(p, pClip);
+                curArea = PolygonUtils.areaOf(pClip);
+                areas.put(p, curArea);
+                totalArea += curArea;
             }
-            if (!adjacencyMap.containsKey(adj[1])) {
-                adjacencyMap.put(adj[1], new HashSet<Point2D.Double>());
+            areaAverage = totalArea / points.length;
+
+            // variance of areas
+            ellInfinity = 0.0;
+            ellOne = 0.0;
+            ellTwo = 0.0;
+            for (Point2D.Double p : points) {
+                ellInfinity = Math.max(ellInfinity, Math.abs(areas.get(p) - areaAverage));
+                ellOne += Math.abs(areas.get(p) - areaAverage);
+                ellTwo += (areas.get(p) - areaAverage) * (areas.get(p) - areaAverage);
             }
-            adjacencyMap.get(adj[0]).add(adj[1]);
-            adjacencyMap.get(adj[1]).add(adj[0]);
+
+            // create the adjacency map
+            for (Point2D.Double[] adj : voronoi.getAdjacencyList()) {
+                if (!adjacencyMap.containsKey(adj[0])) {
+                    adjacencyMap.put(adj[0], new HashSet<Point2D.Double>());
+                }
+                if (!adjacencyMap.containsKey(adj[1])) {
+                    adjacencyMap.put(adj[1], new HashSet<Point2D.Double>());
+                }
+                adjacencyMap.get(adj[0]).add(adj[1]);
+                adjacencyMap.get(adj[1]).add(adj[0]);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.out.println(ex);
+            computing = false;
         }
+        computing = false;
     }
 }

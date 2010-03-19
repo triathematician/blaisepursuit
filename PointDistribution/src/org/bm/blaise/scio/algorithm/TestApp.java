@@ -44,7 +44,7 @@ public class TestApp extends javax.swing.JFrame {
     public TestApp() {
         initComponents();
 
-        tessPlot.addPlottable(PlaneAxes.instance(PlaneAxes.AxisStyle.BOX, "x", "y"));
+        tessPlot.addPlottable(new PlaneAxes("x", "y", PlaneAxes.Style.BOX));
         //scenarioPlot.addPlottable(PlaneGrid.instance());
         tessPlot.setDesiredRange(-5, -5, 5, 5);
 
@@ -55,7 +55,7 @@ public class TestApp extends javax.swing.JFrame {
         tess.addPolygon(new Double(1,1), new Double(2,1), new Double(java.lang.Double.POSITIVE_INFINITY, Math.PI/4), new Double(java.lang.Double.POSITIVE_INFINITY, 3*Math.PI/4));
         tessPlot.addPlottable(new PlaneTesselation(tess));
 
-        voronoiPlot.addPlottable(PlaneAxes.instance(PlaneAxes.AxisStyle.BOX, "x", "y"));
+        voronoiPlot.addPlottable(new PlaneAxes("x", "y", PlaneAxes.Style.BOX));
         voronoiPlot.addPlottable(PlaneGrid.instance());
         voronoiPlot.setDesiredRange(-2, -5, 5, 5);
         PlaneVoronoiFrontier vor = new PlaneVoronoiFrontier( new Point2D.Double[]{
@@ -76,7 +76,7 @@ public class TestApp extends javax.swing.JFrame {
 
         pClip = new VPolygon<Point2D.Double>(new Point2D.Double[]{ new Point2D.Double(0,0), new Point2D.Double(1,0), new Point2D.Double(1,1), new Point2D.Double(0,1) } );
         pClipee = new VPolygon<Point2D.Double>(new Point2D.Double[]{ new Point2D.Double(.5,.5), new Point2D.Double(-.1,.3), new Point2D.Double(1.5,.2) } );
-        pClipped = new VPolygon<Point2D.Double>(PolygonIntersectionUtils.intersect(pClipee.getValues(), pClip.getValues()));
+        pClipped = new VPolygon<Point2D.Double>(PolygonIntersectionUtils.intersectionOfConvexPolygons(pClipee.getValues(), pClip.getValues()));
         clipPlot1.addPlottable(pClip);
         clipPlot1.addPlottable(pClipee);
         clipPlot1.addPlottable(pClipped);
@@ -84,7 +84,7 @@ public class TestApp extends javax.swing.JFrame {
         pClipped.setEditable(false);
         ChangeListener reclip = new ChangeListener(){
             public void stateChanged(ChangeEvent e) {
-                pClipped.setValues(PolygonIntersectionUtils.intersect(pClipee.getValues(), pClip.getValues()));
+                pClipped.setValues(PolygonIntersectionUtils.intersectionOfConvexPolygons(pClipee.getValues(), pClip.getValues()));
             }
         };
         pClip.addChangeListener(reclip);
@@ -273,9 +273,9 @@ class TestClipSegment extends VPolygon<Point2D.Double> {
     }
 
     @Override
-    public void paintComponent(VisometryGraphics<Double> vg) {
-        super.paintComponent(vg);
-        segment.paintComponent(vg);
+    public void draw(VisometryGraphics<Double> vg) {
+        super.draw(vg);
+        segment.draw(vg);
 //        Point2D.Double[] clipped = PolygonUtils.clipSegment(new Point2D.Double[]{segment.getValue1(), segment.getValue2()}, super.getValues());
         Point2D.Double[][] res = PolygonUtils.intersectionOf(new Point2D.Double[]{segment.getValue1(), segment.getValue2()}, super.getValues(), new ArrayList<Integer[]>());
         for (Point2D.Double[] seg : res) {

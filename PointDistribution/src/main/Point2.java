@@ -28,4 +28,10 @@ public class Point2 extends java.awt.geom.Point2D.Double {
         }
         return true;
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        return hash;
+    }
 }

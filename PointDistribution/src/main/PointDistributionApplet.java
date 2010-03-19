@@ -6,13 +6,15 @@
 /*
  * PointDistributionApplet.java
  *
- * Created on Feb 17, 2010, 10:30:27 AM
+ * Created on Mar 19, 2010, 12:06:16 PM
  */
 
 package main;
 
 import data.propertysheet.PropertySheet;
 import data.propertysheet.editor.EditorRegistration;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.beans.DefaultPersistenceDelegate;
 import java.beans.XMLDecoder;
@@ -23,14 +25,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
+import org.bm.blaise.scio.algorithm.PolygonUtils;
+import org.bm.blaise.sequor.timer.BetterTimer;
 import org.bm.blaise.specto.plane.PlaneAxes;
-import org.bm.blaise.specto.plane.PlaneAxes.AxisStyle;
 import org.bm.blaise.specto.visometry.Plottable;
 
 /**
@@ -41,6 +46,7 @@ public class PointDistributionApplet extends javax.swing.JApplet {
 
     DistributionScenarioVis vis;
     DistributionScenarioAlgorithmInterface algorithm;
+    LogValuePlottable maxDevP, meanDevP, meanSqrDevP;
 
     /** Initializes the applet PointDistributionApplet */
     public void init() {
@@ -56,25 +62,48 @@ public class PointDistributionApplet extends javax.swing.JApplet {
                     algorithm = (DistributionScenarioAlgorithmInterface) algoBox.getSelectedItem();
 
                     scenarioPlot.setDesiredRange(-.5,-.5,2.5,1.5);
-                    scenarioPlot.addPlottable(PlaneAxes.instance(AxisStyle.BOX, "x", "y"));
+                    scenarioPlot.addPlottable(new PlaneAxes("x", "y", PlaneAxes.Style.BOX));
+
+                    metricPlot.setDesiredRange(0.0,0.0,300.0,3.0);
+                    metricPlot.setAspectRatio(0.02);
+                    metricPlot.addPlottable(new PlaneAxes("step", "metric", PlaneAxes.Style.ELL));
+                    metricPlot.addPlottable(maxDevP = new LogValuePlottable());
+                    metricPlot.addPlottable(meanDevP = new LogValuePlottable());
+                    metricPlot.addPlottable(meanSqrDevP = new LogValuePlottable());
 
                     vis = new DistributionScenarioVis();
+                    table.setScenario(vis.getScenario());
                     scenarioPlot.setDefaultCoordinateHandler(vis);
                     scenarioPlot.addPlottable(vis);
                     vis.addChangeListener(new ChangeListener(){
                         public void stateChanged(ChangeEvent e) {
                             table.updateModel();
-                            avgLabel.setText(" Avg Area = " + String.format("%2f", vis.scenario.getAreaAverage()));
-                            devLabel.setText(" Dev Area = " + String.format("%2f", Math.sqrt(vis.scenario.getAreaVariance())));
-                            varLabel.setText(" Var Area = " + String.format("%2f", vis.scenario.getAreaVariance()));
+                            int n = vis.scenario.getPoints().length;
+                            double avg = vis.scenario.getAreaAverage();
+                            double maxdiff = vis.scenario.getAreaMaxDifference();
+                            double sumdiff = vis.scenario.getAreaSumDifference();
+                            double sumsqdiff = vis.scenario.getAreaSumSquareDifference();
+
+                            meanL.setText(String.format("%.3f", avg));
+                            maxDevL.setText(varFormatDouble(maxdiff / avg));
+                            meanDevL.setText(varFormatDouble(sumdiff / (n * avg)));
+                            meanSqrDevL.setText(varFormatDouble(sumsqdiff / (n * avg * avg)));
+
+                            maxDevP.logValue(maxdiff / avg);
+                            meanDevP.logValue(sumdiff / (n * avg));
+                            meanSqrDevP.logValue(sumsqdiff / (n * avg * avg));
+                            metricPlot.repaint();
                         }
                     });
                     vis.stateChanged(new ChangeEvent(this));
 
                     propPanel.removeAll();
+                    propPanel.add("Algorithm Parameters", new PropertySheet(new MovementScenarioParameters()));
                     propPanel.add("Visometry", new PropertySheet(scenarioPlot.getVisometry()));
                     for (Plottable p : scenarioPlot.getPlottables())
                         propPanel.add(p.toString(), new PropertySheet(p));
+
+                    initNumberAction.actionPerformed(null);
                 }
             });
         } catch (Exception ex) {
@@ -82,6 +111,45 @@ public class PointDistributionApplet extends javax.swing.JApplet {
         }
     }
 
+    AbstractAction initNumberAction = new AbstractAction("Set # of Points") {
+        public void actionPerformed(ActionEvent e) {
+            int i = -1;
+            boolean fail = false;
+            while (i <= 0) {
+                String s = (String) JOptionPane.showInputDialog(null,
+                        "<html>Enter number of initial points in the scenario<br>" + (fail ? "<b>VALUE MUST BE A POSITIVE INTEGER!</b>" : ""),
+                        "Scenario setup " + (fail ? " (retry)" : ""),
+                    JOptionPane.QUESTION_MESSAGE, null, null, "10");
+                try {
+                    i = Integer.decode(s);
+                } catch (NumberFormatException ex) {}
+                fail = true;
+            }
+            setNumberOfPoints(i);
+        }
+    };
+
+    void setNumberOfPoints(int n) {
+        // sets up with specified number of points, randomly generated inside the polygon and the window (-10,-10) to (10,10)
+        Point2D.Double[] pts = new Point2D.Double[n];
+        for (int i = 0; i < pts.length; i++) {
+            pts[i] = null;
+            while (pts[i] == null) {
+                pts[i] = new Point2D.Double(20*Math.random()-10, 20*Math.random()-10);
+                if (!PolygonUtils.inPolygon(pts[i], vis.getScenario().getBoundaryPolygon()))
+                    pts[i] = null;
+            }
+        }
+        vis.setPoints(pts);
+    }
+
+    String varFormatDouble(double d) {
+        if (Math.abs(d) < .001)
+            return String.format("%.3e", d);
+        else
+            return String.format("%.3f", d);
+    }
+    
     /** This method is called from within the init() method to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -97,24 +165,37 @@ public class PointDistributionApplet extends javax.swing.JApplet {
         saveButton = new javax.swing.JButton();
         saveAsButton = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
+        numButton = new javax.swing.JButton();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
         jLabel1 = new javax.swing.JLabel();
         algoBox = new javax.swing.JComboBox();
+        playButton = new javax.swing.JButton();
         goButton = new javax.swing.JButton();
-        statusBar = new javax.swing.JLabel();
-        jPanel1 = new javax.swing.JPanel();
-        jPanel2 = new javax.swing.JPanel();
-        avgLabel = new javax.swing.JLabel();
-        devLabel = new javax.swing.JLabel();
-        varLabel = new javax.swing.JLabel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        table = new main.PointDistributionTable();
+        stopButton = new javax.swing.JButton();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        stepLabel = new javax.swing.JLabel();
         jSplitPane1 = new javax.swing.JSplitPane();
         scenarioPlot = new org.bm.blaise.specto.plane.PlanePlotComponent();
         jScrollPane1 = new javax.swing.JScrollPane();
         propPanel = new gui.RollupPanel();
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        table = new main.PointDistributionTable();
+        jPanel2 = new javax.swing.JPanel();
+        jLabel5 = new javax.swing.JLabel();
+        meanL = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        maxDevL = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        meanDevL = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        meanSqrDevL = new javax.swing.JLabel();
+        metricPlot = new org.bm.blaise.specto.plane.PlanePlotComponent();
+        statusBar = new javax.swing.JLabel();
 
         jToolBar1.setRollover(true);
 
+        jLabel2.setFont(new java.awt.Font("Tahoma", 3, 13));
         jLabel2.setText("File: ");
         jToolBar1.add(jLabel2);
 
@@ -152,6 +233,14 @@ public class PointDistributionApplet extends javax.swing.JApplet {
         jToolBar1.add(saveAsButton);
         jToolBar1.add(jSeparator1);
 
+        numButton.setAction(initNumberAction);
+        numButton.setText("# Points");
+        numButton.setFocusable(false);
+        numButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        numButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(numButton);
+        jToolBar1.add(jSeparator3);
+
         jLabel1.setText("Algorithm: ");
         jToolBar1.add(jLabel1);
 
@@ -163,7 +252,18 @@ public class PointDistributionApplet extends javax.swing.JApplet {
         });
         jToolBar1.add(algoBox);
 
-        goButton.setText("GO!");
+        playButton.setText("Play");
+        playButton.setFocusable(false);
+        playButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        playButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        playButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                playButtonActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(playButton);
+
+        goButton.setText("Step");
         goButton.setFocusable(false);
         goButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         goButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -174,38 +274,25 @@ public class PointDistributionApplet extends javax.swing.JApplet {
         });
         jToolBar1.add(goButton);
 
+        stopButton.setText("Stop");
+        stopButton.setFocusable(false);
+        stopButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        stopButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        stopButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                stopButtonActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(stopButton);
+        jToolBar1.add(jSeparator2);
+
+        stepLabel.setText("step = 0");
+        stepLabel.setPreferredSize(new java.awt.Dimension(80, 16));
+        jToolBar1.add(stepLabel);
+
         getContentPane().add(jToolBar1, java.awt.BorderLayout.NORTH);
 
-        statusBar.setText("STATUS: ");
-        getContentPane().add(statusBar, java.awt.BorderLayout.SOUTH);
-
-        jPanel1.setMinimumSize(new java.awt.Dimension(200, 65));
-        jPanel1.setLayout(new java.awt.BorderLayout());
-
-        jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
-        jPanel2.setLayout(new java.awt.GridLayout(2, 1));
-
-        avgLabel.setFont(new java.awt.Font("Tahoma", 3, 14));
-        avgLabel.setText(" Avg Area = ");
-        jPanel2.add(avgLabel);
-
-        devLabel.setFont(new java.awt.Font("Tahoma", 3, 14));
-        devLabel.setText("Dev Area =");
-        jPanel2.add(devLabel);
-
-        varLabel.setFont(new java.awt.Font("Tahoma", 3, 14));
-        varLabel.setText(" Var Area = ");
-        jPanel2.add(varLabel);
-
-        jPanel1.add(jPanel2, java.awt.BorderLayout.PAGE_END);
-
-        jScrollPane2.setViewportView(table);
-
-        jPanel1.add(jScrollPane2, java.awt.BorderLayout.CENTER);
-
-        getContentPane().add(jPanel1, java.awt.BorderLayout.EAST);
-
-        jSplitPane1.setDividerLocation(200);
+        jSplitPane1.setDividerLocation(300);
         jSplitPane1.setOneTouchExpandable(true);
         jSplitPane1.setPreferredSize(new java.awt.Dimension(500, 300));
 
@@ -213,11 +300,11 @@ public class PointDistributionApplet extends javax.swing.JApplet {
         scenarioPlot.setLayout(scenarioPlotLayout);
         scenarioPlotLayout.setHorizontalGroup(
             scenarioPlotLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 418, Short.MAX_VALUE)
+            .add(0, 373, Short.MAX_VALUE)
         );
         scenarioPlotLayout.setVerticalGroup(
             scenarioPlotLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 431, Short.MAX_VALUE)
+            .add(0, 408, Short.MAX_VALUE)
         );
 
         jSplitPane1.setRightComponent(scenarioPlot);
@@ -227,6 +314,89 @@ public class PointDistributionApplet extends javax.swing.JApplet {
         jSplitPane1.setLeftComponent(jScrollPane1);
 
         getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
+
+        jPanel1.setMinimumSize(new java.awt.Dimension(200, 65));
+        jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.PAGE_AXIS));
+
+        jScrollPane2.setViewportView(table);
+
+        jPanel1.add(jScrollPane2);
+
+        jPanel2.setBackground(new java.awt.Color(204, 204, 255));
+        jPanel2.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), javax.swing.BorderFactory.createEmptyBorder(4, 4, 4, 4)));
+        jPanel2.setLayout(new java.awt.GridLayout(4, 2, 4, 4));
+
+        jLabel5.setFont(new java.awt.Font("Tahoma", 3, 18));
+        jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel5.setText("Mean Area =");
+        jLabel5.setToolTipText("Average of Areas");
+        jPanel2.add(jLabel5);
+
+        meanL.setBackground(new java.awt.Color(0, 0, 0));
+        meanL.setFont(new java.awt.Font("Courier New", 1, 24));
+        meanL.setForeground(new java.awt.Color(255, 255, 255));
+        meanL.setText("0.00");
+        meanL.setToolTipText("Average of Areas");
+        meanL.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        meanL.setOpaque(true);
+        jPanel2.add(meanL);
+
+        jLabel6.setFont(new java.awt.Font("Tahoma", 3, 18));
+        jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel6.setText("Max Dev =");
+        jLabel6.setToolTipText("Max Deviation  of Area from Average");
+        jPanel2.add(jLabel6);
+
+        maxDevL.setBackground(new java.awt.Color(0, 0, 0));
+        maxDevL.setFont(new java.awt.Font("Courier New", 1, 24));
+        maxDevL.setForeground(new java.awt.Color(255, 255, 255));
+        maxDevL.setText("0.00");
+        maxDevL.setToolTipText("Max Deviation  of Area from Average");
+        maxDevL.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        maxDevL.setOpaque(true);
+        jPanel2.add(maxDevL);
+
+        jLabel7.setFont(new java.awt.Font("Tahoma", 3, 18));
+        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel7.setText("Mean Dev =");
+        jLabel7.setToolTipText("Average Deviation of Area from Average");
+        jPanel2.add(jLabel7);
+
+        meanDevL.setBackground(new java.awt.Color(0, 0, 0));
+        meanDevL.setFont(new java.awt.Font("Courier New", 1, 24));
+        meanDevL.setForeground(new java.awt.Color(255, 255, 255));
+        meanDevL.setText("0.00");
+        meanDevL.setToolTipText("Average Deviation of Area from Average");
+        meanDevL.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        meanDevL.setOpaque(true);
+        jPanel2.add(meanDevL);
+
+        jLabel8.setFont(new java.awt.Font("Tahoma", 3, 18));
+        jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel8.setText("Mean Sqr Dev =");
+        jLabel8.setToolTipText("Mean Squared Deviation of Area from Average");
+        jPanel2.add(jLabel8);
+
+        meanSqrDevL.setBackground(new java.awt.Color(0, 0, 0));
+        meanSqrDevL.setFont(new java.awt.Font("Courier New", 1, 24));
+        meanSqrDevL.setForeground(new java.awt.Color(255, 255, 255));
+        meanSqrDevL.setText("0.00");
+        meanSqrDevL.setToolTipText("Mean Squared Deviation of Area from Average");
+        meanSqrDevL.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        meanSqrDevL.setOpaque(true);
+        jPanel2.add(meanSqrDevL);
+
+        jPanel1.add(jPanel2);
+
+        metricPlot.setBackground(new java.awt.Color(204, 204, 255));
+        metricPlot.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        metricPlot.setLayout(new java.awt.BorderLayout());
+        jPanel1.add(metricPlot);
+
+        getContentPane().add(jPanel1, java.awt.BorderLayout.EAST);
+
+        statusBar.setText("STATUS:");
+        getContentPane().add(statusBar, java.awt.BorderLayout.SOUTH);
     }// </editor-fold>//GEN-END:initComponents
 
     //
@@ -256,6 +426,7 @@ public class PointDistributionApplet extends javax.swing.JApplet {
             XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(file)));
             vis.setScenario((DistributionScenario) decoder.readObject());
             decoder.close();
+            table.setScenario(vis.getScenario());
             statusBar.setText(statusBar.getText() + "... successful!");
         } catch (FileNotFoundException ex) {
             statusBar.setText(statusBar.getText() + " ERROR -- FILE NOT FOUND!");
@@ -317,35 +488,82 @@ public class PointDistributionApplet extends javax.swing.JApplet {
         statusBar.setText("STATUS: changed algorithm");
 }//GEN-LAST:event_algoBoxActionPerformed
 
+    BetterTimer timer;
+    int step = 0;
+    
+    private void playButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_playButtonActionPerformed
+        timer = new BetterTimer(100);
+        timer.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) {
+                if (!((DistributionScenario)vis.getScenario()).computing) {
+                    try {
+                        Point2D.Double[] newPos = algorithm.getNewPositions(vis.getScenario());
+                        vis.getVisualPoints().setValues(newPos); // this recomputes the visometry
+                        scenarioPlot.repaint();
+                        step++;
+                        stepLabel.setText("step = " + step);
+                        statusBar.setText("STATUS: updated point locations");
+                    } catch (Exception ex) {
+                        timer.stop();
+                        statusBar.setText("STATUS: timer stopped unexpectedly due to an exception in computing the Voronoi diagram");
+                    }
+                }
+            }
+        });
+        step = 0;
+        stepLabel.setText("step = " + step);
+        timer.start();
+}//GEN-LAST:event_playButtonActionPerformed
+
     private void goButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButtonActionPerformed
         Point2D.Double[] newPos = algorithm.getNewPositions(vis.getScenario());
-        vis.getPoints().setValues(newPos);
+        vis.getVisualPoints().setValues(newPos);
+        step++;
+        stepLabel.setText("step = " + step);
         statusBar.setText("STATUS: updated point locations");
 }//GEN-LAST:event_goButtonActionPerformed
+
+    private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
+        if (timer != null)
+            timer.stop();
+        step = 0;
+}//GEN-LAST:event_stopButtonActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox algoBox;
-    private javax.swing.JLabel avgLabel;
-    private javax.swing.JLabel devLabel;
     private javax.swing.JButton goButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JButton loadButton;
+    private javax.swing.JLabel maxDevL;
+    private javax.swing.JLabel meanDevL;
+    private javax.swing.JLabel meanL;
+    private javax.swing.JLabel meanSqrDevL;
+    private org.bm.blaise.specto.plane.PlanePlotComponent metricPlot;
+    private javax.swing.JButton numButton;
+    private javax.swing.JButton playButton;
     private gui.RollupPanel propPanel;
     private javax.swing.JButton saveAsButton;
     private javax.swing.JButton saveButton;
     private org.bm.blaise.specto.plane.PlanePlotComponent scenarioPlot;
     private javax.swing.JLabel statusBar;
+    private javax.swing.JLabel stepLabel;
+    private javax.swing.JButton stopButton;
     private main.PointDistributionTable table;
-    private javax.swing.JLabel varLabel;
     // End of variables declaration//GEN-END:variables
 
 }

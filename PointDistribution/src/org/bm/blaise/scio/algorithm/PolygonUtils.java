@@ -27,16 +27,34 @@ public class PolygonUtils {
      * @param polygon the polygon, as a list of points
      * @return the area of a polygon, or 0 if either the polygon has fewer than 3 vertices or is null
      */
-    public static double area(Point2D.Double[] polygon) {
+    public static double areaOf(Point2D.Double[] polygon) {
         if (polygon == null || polygon.length <= 2)
             return 0;
+        int n = polygon.length;
         double sum = 0;
         int i2;
-        for (int i = 0; i < polygon.length; i++) {
-            i2 = (i+1) % polygon.length;
+        for (int i = 0; i < n; i++) {
+            i2 = (i+1)%n;
             sum += polygon[i].x * polygon[i2].y - polygon[i].y * polygon[i2].x;
         }
         return Math.abs(sum/2);
+    }
+    /**
+     *
+     * Computes the pereimeter of a polygon
+     * @param polygon the polygon, as a list of points
+     * @return The perimeter of the polygon; specifically the total length between successive points.
+     *   If there are 0 or 1 points, returns zero. If there are 2 points, returns twice the length between them.
+     */
+    public static double perimeterOf(Point2D.Double[] polygon) {
+        if (polygon == null || polygon.length < 2)
+            return 0;
+        int n = polygon.length;
+        double sum = 0;
+        for (int i = 0; i < polygon.length; i++) {
+            sum += polygon[i].distance(polygon[(i+1)%n]);
+        }
+        return sum;
     }
 
     /**
@@ -62,6 +80,39 @@ public class PolygonUtils {
     }
 
     /**
+     * Returns closest point along the boundary of a polygon to a given point.
+     * @param point the point (may be inside or outside the polygon)
+     * @param polygon the polygon
+     */
+    public static Point2D.Double closestPointOnPolygon(Point2D.Double point, Point2D.Double[] polygon) {
+        double minDist = Double.MAX_VALUE;
+        Point2D.Double minPt = null;
+        for (int i = 0; i < polygon.length; i++) {
+            Point2D.Double closest = PlanarMathUtils.closestPointOnSegment(point, polygon[i], polygon[(i+1)%polygon.length]);
+            if (closest.distanceSq(point) < minDist) {
+                minPt = closest;
+                minDist = closest.distanceSq(point);
+            }
+        }
+        return minPt;
+    }
+
+    /**
+     * Returns distance from a point to the boundary of a polygon
+     * @param point the point (may be inside or outside the polygon)
+     * @param polygon the polygon
+     */
+    public static double distanceToPolygon(Point2D.Double point, Point2D.Double[] polygon) {
+        double minDist = Double.MAX_VALUE;
+        for (int i = 0; i < polygon.length; i++) {
+            Point2D.Double closest = PlanarMathUtils.closestPointOnSegment(point, polygon[i], polygon[(i+1)%polygon.length]);
+            if (closest.distanceSq(point) < minDist)
+                minDist = closest.distanceSq(point);
+        }
+        return minDist;
+    }
+
+    /**
      * Finds point of intersection between two line segments (p0--p1 and p2--p3).
      * Permits points at infinity, whose form is (Infinity, angle)... this leads to a ray intersection method
      * @param result pointer for the resulting point of intersecction; will be null if there is no intersection
@@ -70,26 +121,28 @@ public class PolygonUtils {
      * @return time (relative to first segment) at which intersection occurs; may be NaN if no intersection
      */
     public static double intersectSegments(Point2D.Double result, Point2D.Double s1a, Point2D.Double s1b, Point2D.Double s2a, Point2D.Double s2b) {
-        if (result == null) result = new Point2D.Double();
-        if ((Double.isInfinite(s1a.x) && Double.isInfinite(s1b.x)) || (Double.isInfinite(s2a.x) && Double.isInfinite(s2b.x))) {
+        if (result == null) 
+            result = new Point2D.Double();
+
+        if ((Double.isInfinite(s1a.x) && Double.isInfinite(s1b.x)) || (Double.isInfinite(s2a.x) && Double.isInfinite(s2b.x)))
             // a "segment" at infinity has no intersections
             return Double.NaN;
-        } else if (Double.isInfinite(s1b.x)) {
+        else if (Double.isInfinite(s1b.x))
             // reorganize inputs
             return intersectSegments(result, s1b, s1a, s2a, s2b);
-        } else if (Double.isInfinite(s2b.x)) {
+        else if (Double.isInfinite(s2b.x))
             // reorganize inputs
             return intersectSegments(result, s1a, s1b, s2b, s2a);
-        } else if (Double.isInfinite(s1a.x) && Double.isInfinite(s2a.x)) {
+        else if (Double.isInfinite(s1a.x) && Double.isInfinite(s2a.x))
             // 2 rays intersecting
             return intersectRays(result, s1b, s1a.y, s2b, s2a.y);
-        } else if (Double.isInfinite(s1a.x)) {
+        else if (Double.isInfinite(s1a.x))
             // ray and segment intersecting; request time relative to ray
             return intersectSegmentRay(result, s2a, s2b, s1b, s1a.y, false);
             // ray and segment intersecting
-        } else if (Double.isInfinite(s2a.x)) {
+        else if (Double.isInfinite(s2a.x))
             return intersectSegmentRay(result, s1a, s1b, s2b, s2a.y, true);
-        }
+
         // computes coordinates of intersection of segments
         double t[] = BasicMathUtils.solveLinear(
                 new double[]{s1b.x-s1a.x, s2a.x-s2b.x, s1a.x-s2a.x},
@@ -104,7 +157,9 @@ public class PolygonUtils {
     }
 
     public static double intersectSegmentRay(Point2D.Double result, Point2D.Double sa, Point2D.Double sb, Point2D.Double ray, double theta, boolean timeSegment) {
-        if (result == null) result = new Point2D.Double();
+        if (result == null) 
+            result = new Point2D.Double();
+        
         if (VERBOSE) System.out.print("Intersecting segment " + sa + " and " + sb + " with ray " + ray + " , " + theta);
         double t[] = BasicMathUtils.solveLinear(
                 new double[]{sb.x-sa.x, -Math.cos(theta), sa.x-ray.x},

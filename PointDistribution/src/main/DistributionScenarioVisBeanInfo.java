@@ -26,45 +26,56 @@ public class DistributionScenarioVisBeanInfo extends SimpleBeanInfo {
     // Property identifiers//GEN-FIRST:Properties
     private static final int PROPERTY_adjusting = 0;
     private static final int PROPERTY_animationOn = 1;
-    private static final int PROPERTY_boundaryPolygon = 2;
-    private static final int PROPERTY_editable = 3;
+    private static final int PROPERTY_editable = 2;
+    private static final int PROPERTY_mouseEditsPoints = 3;
     private static final int PROPERTY_name = 4;
     private static final int PROPERTY_plottableArray = 5;
     private static final int PROPERTY_plottables = 6;
     private static final int PROPERTY_points = 7;
-    private static final int PROPERTY_pointsActive = 8;
+    private static final int PROPERTY_polygon = 8;
     private static final int PROPERTY_scenario = 9;
     private static final int PROPERTY_selected = 10;
-    private static final int PROPERTY_visible = 11;
+    private static final int PROPERTY_tesselationVisible = 11;
+    private static final int PROPERTY_visible = 12;
+    private static final int PROPERTY_visualPoints = 13;
+    private static final int PROPERTY_visualPolygon = 14;
 
     // Property array 
     /*lazy PropertyDescriptor*/
     private static PropertyDescriptor[] getPdescriptor(){
-        PropertyDescriptor[] properties = new PropertyDescriptor[12];
+        PropertyDescriptor[] properties = new PropertyDescriptor[15];
     
         try {
             properties[PROPERTY_adjusting] = new PropertyDescriptor ( "adjusting", main.DistributionScenarioVis.class, "isAdjusting", null ); // NOI18N
             properties[PROPERTY_adjusting].setHidden ( true );
             properties[PROPERTY_animationOn] = new PropertyDescriptor ( "animationOn", main.DistributionScenarioVis.class, "isAnimationOn", "setAnimationOn" ); // NOI18N
             properties[PROPERTY_animationOn].setHidden ( true );
-            properties[PROPERTY_boundaryPolygon] = new PropertyDescriptor ( "boundaryPolygon", main.DistributionScenarioVis.class, "getBoundaryPolygon", "setBoundaryPolygon" ); // NOI18N
-            properties[PROPERTY_boundaryPolygon].setPreferred ( true );
             properties[PROPERTY_editable] = new PropertyDescriptor ( "editable", main.DistributionScenarioVis.class, "isEditable", "setEditable" ); // NOI18N
             properties[PROPERTY_editable].setExpert ( true );
+            properties[PROPERTY_mouseEditsPoints] = new PropertyDescriptor ( "mouseEditsPoints", main.DistributionScenarioVis.class, "isMouseEditsPoints", "setMouseEditsPoints" ); // NOI18N
+            properties[PROPERTY_mouseEditsPoints].setPreferred ( true );
             properties[PROPERTY_name] = new PropertyDescriptor ( "name", main.DistributionScenarioVis.class, "getName", "setName" ); // NOI18N
             properties[PROPERTY_name].setExpert ( true );
             properties[PROPERTY_plottableArray] = new IndexedPropertyDescriptor ( "plottableArray", main.DistributionScenarioVis.class, "getPlottableArray", "setPlottableArray", "getPlottableArray", "setPlottableArray" ); // NOI18N
             properties[PROPERTY_plottableArray].setHidden ( true );
             properties[PROPERTY_plottables] = new PropertyDescriptor ( "plottables", main.DistributionScenarioVis.class, "getPlottables", null ); // NOI18N
             properties[PROPERTY_plottables].setExpert ( true );
-            properties[PROPERTY_points] = new PropertyDescriptor ( "points", main.DistributionScenarioVis.class, "getPoints", "setPoints" ); // NOI18N
+            properties[PROPERTY_points] = new IndexedPropertyDescriptor ( "points", main.DistributionScenarioVis.class, "getPoints", "setPoints", "getPoints", "setPoints" ); // NOI18N
             properties[PROPERTY_points].setPreferred ( true );
-            properties[PROPERTY_pointsActive] = new PropertyDescriptor ( "pointsActive", main.DistributionScenarioVis.class, "isPointsActive", "setPointsActive" ); // NOI18N
-            properties[PROPERTY_pointsActive].setPreferred ( true );
+            properties[PROPERTY_polygon] = new IndexedPropertyDescriptor ( "polygon", main.DistributionScenarioVis.class, "getPolygon", "setPolygon", "getPolygon", "setPolygon" ); // NOI18N
+            properties[PROPERTY_polygon].setPreferred ( true );
             properties[PROPERTY_scenario] = new PropertyDescriptor ( "scenario", main.DistributionScenarioVis.class, "getScenario", "setScenario" ); // NOI18N
+            properties[PROPERTY_scenario].setExpert ( true );
             properties[PROPERTY_selected] = new PropertyDescriptor ( "selected", main.DistributionScenarioVis.class, "isSelected", "setSelected" ); // NOI18N
             properties[PROPERTY_selected].setHidden ( true );
+            properties[PROPERTY_tesselationVisible] = new PropertyDescriptor ( "tesselationVisible", main.DistributionScenarioVis.class, "isTesselationVisible", "setTesselationVisible" ); // NOI18N
+            properties[PROPERTY_tesselationVisible].setPreferred ( true );
             properties[PROPERTY_visible] = new PropertyDescriptor ( "visible", main.DistributionScenarioVis.class, "isVisible", "setVisible" ); // NOI18N
+            properties[PROPERTY_visible].setExpert ( true );
+            properties[PROPERTY_visualPoints] = new PropertyDescriptor ( "visualPoints", main.DistributionScenarioVis.class, "getVisualPoints", "setVisualPoints" ); // NOI18N
+            properties[PROPERTY_visualPoints].setExpert ( true );
+            properties[PROPERTY_visualPolygon] = new PropertyDescriptor ( "visualPolygon", main.DistributionScenarioVis.class, "getVisualPolygon", "setVisualPolygon" ); // NOI18N
+            properties[PROPERTY_visualPolygon].setExpert ( true );
         }
         catch(IntrospectionException e) {
             e.printStackTrace();
@@ -97,16 +108,16 @@ public class DistributionScenarioVisBeanInfo extends SimpleBeanInfo {
     private static final int METHOD_add0 = 0;
     private static final int METHOD_addAll1 = 1;
     private static final int METHOD_clear2 = 2;
-    private static final int METHOD_handleCoordinate3 = 3;
-    private static final int METHOD_isClickablyCloseTo4 = 4;
-    private static final int METHOD_mouseClicked5 = 5;
-    private static final int METHOD_mouseDragged6 = 6;
-    private static final int METHOD_mouseEntered7 = 7;
-    private static final int METHOD_mouseExited8 = 8;
-    private static final int METHOD_mouseMoved9 = 9;
-    private static final int METHOD_mousePressed10 = 10;
-    private static final int METHOD_mouseReleased11 = 11;
-    private static final int METHOD_paintComponent12 = 12;
+    private static final int METHOD_draw3 = 3;
+    private static final int METHOD_handleCoordinate4 = 4;
+    private static final int METHOD_isClickablyCloseTo5 = 5;
+    private static final int METHOD_mouseClicked6 = 6;
+    private static final int METHOD_mouseDragged7 = 7;
+    private static final int METHOD_mouseEntered8 = 8;
+    private static final int METHOD_mouseExited9 = 9;
+    private static final int METHOD_mouseMoved10 = 10;
+    private static final int METHOD_mousePressed11 = 11;
+    private static final int METHOD_mouseReleased12 = 12;
     private static final int METHOD_recomputeAtTime13 = 13;
     private static final int METHOD_remove14 = 14;
     private static final int METHOD_stateChanged15 = 15;
@@ -125,26 +136,26 @@ public class DistributionScenarioVisBeanInfo extends SimpleBeanInfo {
             methods[METHOD_addAll1].setDisplayName ( "" );
             methods[METHOD_clear2] = new MethodDescriptor(org.bm.blaise.specto.visometry.PlottableGroup.class.getMethod("clear", new Class[] {})); // NOI18N
             methods[METHOD_clear2].setDisplayName ( "" );
-            methods[METHOD_handleCoordinate3] = new MethodDescriptor(main.DistributionScenarioVis.class.getMethod("handleCoordinate", new Class[] {java.awt.geom.Point2D.Double.class})); // NOI18N
-            methods[METHOD_handleCoordinate3].setDisplayName ( "" );
-            methods[METHOD_isClickablyCloseTo4] = new MethodDescriptor(org.bm.blaise.specto.visometry.PlottableGroup.class.getMethod("isClickablyCloseTo", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_isClickablyCloseTo4].setDisplayName ( "" );
-            methods[METHOD_mouseClicked5] = new MethodDescriptor(org.bm.blaise.specto.visometry.AbstractDynamicPlottable.class.getMethod("mouseClicked", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_mouseClicked5].setDisplayName ( "" );
-            methods[METHOD_mouseDragged6] = new MethodDescriptor(org.bm.blaise.specto.visometry.AbstractDynamicPlottable.class.getMethod("mouseDragged", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_mouseDragged6].setDisplayName ( "" );
-            methods[METHOD_mouseEntered7] = new MethodDescriptor(org.bm.blaise.specto.visometry.AbstractDynamicPlottable.class.getMethod("mouseEntered", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_mouseEntered7].setDisplayName ( "" );
-            methods[METHOD_mouseExited8] = new MethodDescriptor(org.bm.blaise.specto.visometry.AbstractDynamicPlottable.class.getMethod("mouseExited", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_mouseExited8].setDisplayName ( "" );
-            methods[METHOD_mouseMoved9] = new MethodDescriptor(org.bm.blaise.specto.visometry.AbstractDynamicPlottable.class.getMethod("mouseMoved", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_mouseMoved9].setDisplayName ( "" );
-            methods[METHOD_mousePressed10] = new MethodDescriptor(org.bm.blaise.specto.visometry.AbstractDynamicPlottable.class.getMethod("mousePressed", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_mousePressed10].setDisplayName ( "" );
-            methods[METHOD_mouseReleased11] = new MethodDescriptor(org.bm.blaise.specto.visometry.AbstractDynamicPlottable.class.getMethod("mouseReleased", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
-            methods[METHOD_mouseReleased11].setDisplayName ( "" );
-            methods[METHOD_paintComponent12] = new MethodDescriptor(main.DistributionScenarioVis.class.getMethod("paintComponent", new Class[] {org.bm.blaise.specto.visometry.VisometryGraphics.class})); // NOI18N
-            methods[METHOD_paintComponent12].setDisplayName ( "" );
+            methods[METHOD_draw3] = new MethodDescriptor(main.DistributionScenarioVis.class.getMethod("draw", new Class[] {org.bm.blaise.specto.visometry.VisometryGraphics.class})); // NOI18N
+            methods[METHOD_draw3].setDisplayName ( "" );
+            methods[METHOD_handleCoordinate4] = new MethodDescriptor(main.DistributionScenarioVis.class.getMethod("handleCoordinate", new Class[] {java.awt.geom.Point2D.Double.class})); // NOI18N
+            methods[METHOD_handleCoordinate4].setDisplayName ( "" );
+            methods[METHOD_isClickablyCloseTo5] = new MethodDescriptor(org.bm.blaise.specto.visometry.PlottableGroup.class.getMethod("isClickablyCloseTo", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_isClickablyCloseTo5].setDisplayName ( "" );
+            methods[METHOD_mouseClicked6] = new MethodDescriptor(org.bm.blaise.specto.visometry.DynamicPlottable.class.getMethod("mouseClicked", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_mouseClicked6].setDisplayName ( "" );
+            methods[METHOD_mouseDragged7] = new MethodDescriptor(org.bm.blaise.specto.visometry.DynamicPlottable.class.getMethod("mouseDragged", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_mouseDragged7].setDisplayName ( "" );
+            methods[METHOD_mouseEntered8] = new MethodDescriptor(org.bm.blaise.specto.visometry.DynamicPlottable.class.getMethod("mouseEntered", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_mouseEntered8].setDisplayName ( "" );
+            methods[METHOD_mouseExited9] = new MethodDescriptor(org.bm.blaise.specto.visometry.DynamicPlottable.class.getMethod("mouseExited", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_mouseExited9].setDisplayName ( "" );
+            methods[METHOD_mouseMoved10] = new MethodDescriptor(org.bm.blaise.specto.visometry.DynamicPlottable.class.getMethod("mouseMoved", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_mouseMoved10].setDisplayName ( "" );
+            methods[METHOD_mousePressed11] = new MethodDescriptor(org.bm.blaise.specto.visometry.DynamicPlottable.class.getMethod("mousePressed", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_mousePressed11].setDisplayName ( "" );
+            methods[METHOD_mouseReleased12] = new MethodDescriptor(org.bm.blaise.specto.visometry.DynamicPlottable.class.getMethod("mouseReleased", new Class[] {org.bm.blaise.specto.visometry.VisometryMouseEvent.class})); // NOI18N
+            methods[METHOD_mouseReleased12].setDisplayName ( "" );
             methods[METHOD_recomputeAtTime13] = new MethodDescriptor(org.bm.blaise.specto.visometry.PlottableGroup.class.getMethod("recomputeAtTime", new Class[] {org.bm.blaise.specto.visometry.Visometry.class, org.bm.blaise.specto.visometry.VisometryGraphics.class, org.bm.blaise.sequor.timer.TimeClock.class})); // NOI18N
             methods[METHOD_recomputeAtTime13].setDisplayName ( "" );
             methods[METHOD_remove14] = new MethodDescriptor(org.bm.blaise.specto.visometry.PlottableGroup.class.getMethod("remove", new Class[] {org.bm.blaise.specto.visometry.Plottable.class})); // NOI18N

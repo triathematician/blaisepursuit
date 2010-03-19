@@ -152,16 +152,15 @@ public class PlaneVoronoiFrontier extends VPointSet<Point2D.Double> {
     //
 
     @Override
-    public void paintComponent(VisometryGraphics<Point2D.Double> vg) {
+    public void draw(VisometryGraphics<Point2D.Double> vg) {
         // draws the tesselation
         if (tesselationVisible)
-            voronoiTesselation.paintComponent(vg);
+            voronoiTesselation.draw(vg);
 
         if (directrixVisible) {
             // draws the directri
-            vg.setPathStyle(directrixStyle);
             double directrix = getDirectrix();
-            vg.drawVLine(new Point2D.Double(directrix,0));
+            vg.drawSegment(new Point2D.Double(directrix, vg.getMinCoord().y), new Point2D.Double(directrix, vg.getMaxCoord().y), directrixStyle);
             PointShape shp = pointStyle.getShape();
             vg.setPointStyle(pointStyle);
             pointStyle.setShape(PointShape.CROSS);
@@ -181,15 +180,13 @@ public class PlaneVoronoiFrontier extends VPointSet<Point2D.Double> {
 
         // draws delaunay connections
         if (delaunayVisible) {
-            vg.setPathStyle(delaunayStyle);
             List<Point2D.Double[]> connections = frontier.getAdjacencyList();
-            for (Point2D.Double[] c : connections) {
-                vg.drawSegment(c[0], c[1]);
-            }
+            for (Point2D.Double[] c : connections)
+                vg.drawSegment(c[0], c[1], delaunayStyle);
         }
 
         // draws the points
-        super.paintComponent(vg);
+        super.draw(vg);
     }
 
     //

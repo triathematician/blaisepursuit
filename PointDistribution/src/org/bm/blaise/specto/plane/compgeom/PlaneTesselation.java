@@ -16,7 +16,7 @@ import org.bm.blaise.specto.primitive.PathStyle;
 import org.bm.blaise.specto.primitive.PointStyle;
 import org.bm.blaise.specto.primitive.PointStyle.PointShape;
 import org.bm.blaise.specto.primitive.ShapeStyle;
-import org.bm.blaise.specto.visometry.AbstractPlottable;
+import org.bm.blaise.specto.visometry.Plottable;
 import org.bm.blaise.specto.visometry.VisometryGraphics;
 
 /**
@@ -25,7 +25,7 @@ import org.bm.blaise.specto.visometry.VisometryGraphics;
  * </p>
  * @author Elisha Peterson
  */
-public class PlaneTesselation extends AbstractPlottable<Point2D.Double> {
+public class PlaneTesselation extends Plottable<Point2D.Double> {
 
     /** The tesselation. */
     Tesselation tess;
@@ -112,7 +112,7 @@ public class PlaneTesselation extends AbstractPlottable<Point2D.Double> {
     //
 
     @Override
-    public void paintComponent(VisometryGraphics<Point2D.Double> vg) {
+    public void draw(VisometryGraphics<Point2D.Double> vg) {
         vg.setShapeStyle(interiorStyle);
         Color is = interiorStyle.getFillColor();
         Color c = is;
@@ -125,18 +125,13 @@ public class PlaneTesselation extends AbstractPlottable<Point2D.Double> {
                 interiorStyle.setFillColor(c);
                 c = nextColor(c, 13, 83, 157);
             }
-            vg.drawClosedPath(p.getVerticesAsArray());
+            vg.drawShape(p.getVerticesAsArray());
         }
         interiorStyle.setFillColor(is);
 
-        vg.setPathStyle(edgeStyle);
-        for (Edge e : tess.getEdges()) {
-            vg.drawSegment(e.v1, e.v2);
-        }
-
-        vg.setPointStyle(vertexStyle);
-        for (Point2D.Double p : tess.getVertices()) {
-            vg.drawPoint(p);
-        }
+        for (Edge e : tess.getEdges())
+            vg.drawSegment(e.v1, e.v2, edgeStyle);
+        for (Point2D.Double p : tess.getVertices())
+            vg.drawPoint(p, vertexStyle);
     }
 }
