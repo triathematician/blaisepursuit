@@ -38,7 +38,7 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout"/>
       <SubComponents>
-        <Container class="org.bm.blaise.specto.plane.PlanePlotComponent" name="tessPlot">
+        <Container class="visometry.plane.PlanePlotComponent" name="tessPlot">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
               <JTabbedPaneConstraints tabName="Tesselation">
@@ -55,16 +55,16 @@
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="227" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="245" max="32767" attributes="0"/>
               </Group>
             </DimensionLayout>
           </Layout>
         </Container>
-        <Container class="org.bm.blaise.specto.plane.PlanePlotComponent" name="voronoiPlot">
+        <Container class="visometry.plane.PlanePlotComponent" name="hullPlot">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Voronoi Frontier Algorithm">
-                <Property name="tabTitle" type="java.lang.String" value="Voronoi Frontier Algorithm"/>
+              <JTabbedPaneConstraints tabName="Hull">
+                <Property name="tabTitle" type="java.lang.String" value="Hull"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>
@@ -77,16 +77,16 @@
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="227" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="245" max="32767" attributes="0"/>
               </Group>
             </DimensionLayout>
           </Layout>
         </Container>
-        <Container class="org.bm.blaise.specto.plane.PlanePlotComponent" name="hullPlot">
+        <Container class="visometry.plane.PlanePlotComponent" name="voronoiPlot">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Convex Hull">
-                <Property name="tabTitle" type="java.lang.String" value="Convex Hull"/>
+              <JTabbedPaneConstraints tabName="Voronoi">
+                <Property name="tabTitle" type="java.lang.String" value="Voronoi"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>
@@ -99,16 +99,16 @@
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="227" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="245" max="32767" attributes="0"/>
               </Group>
             </DimensionLayout>
           </Layout>
         </Container>
-        <Container class="org.bm.blaise.specto.plane.PlanePlotComponent" name="clipPlot">
+        <Container class="visometry.plane.PlanePlotComponent" name="clipPlot">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Segment Clipping">
-                <Property name="tabTitle" type="java.lang.String" value="Segment Clipping"/>
+              <JTabbedPaneConstraints tabName="Clip #1">
+                <Property name="tabTitle" type="java.lang.String" value="Clip #1"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>
@@ -121,16 +121,16 @@
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="227" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="245" max="32767" attributes="0"/>
               </Group>
             </DimensionLayout>
           </Layout>
         </Container>
-        <Container class="org.bm.blaise.specto.plane.PlanePlotComponent" name="clipPlot1">
+        <Container class="visometry.plane.PlanePlotComponent" name="clipPlot1">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Polygon Clipping">
-                <Property name="tabTitle" type="java.lang.String" value="Polygon Clipping"/>
+              <JTabbedPaneConstraints tabName="Clip #2">
+                <Property name="tabTitle" type="java.lang.String" value="Clip #2"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>
@@ -143,7 +143,7 @@
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="227" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="245" max="32767" attributes="0"/>
               </Group>
             </DimensionLayout>
           </Layout>

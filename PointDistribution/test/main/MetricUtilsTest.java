@@ -5,12 +5,9 @@
 
 package main;
 
-import org.bm.blaise.scio.algorithm.MetricUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import java.awt.geom.Point2D.Double;
-import static org.junit.Assert.*;
 
 /**
  *

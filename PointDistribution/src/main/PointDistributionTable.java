@@ -13,7 +13,6 @@ import javax.swing.JTable;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
 /**
@@ -61,8 +60,8 @@ public class PointDistributionTable extends JTable {
     // MODEL FOR POINT TABLE
     //
 
-    final static String[] COLS = { "Color", "x", "y", "Nearby Area" };
-    final static Class[] CLASSES = { Color.class, double.class, double.class, double.class };
+    final static String[] COLS = { "Color", "(x,y)", "Area", "Score" };
+    final static Class[] CLASSES = { Color.class, String.class, double.class, double.class };
 
     public class ScenarioTableModel implements TableModel {
         public int getRowCount() { return scenario.getPoints().length; }
@@ -71,10 +70,10 @@ public class PointDistributionTable extends JTable {
         public Class<?> getColumnClass(int col) { return Object.class; }
         public Object getValueAt(int row, int col) {
             switch(col) {
-                case 0: return DistributionScenarioVis.getColor(row);
-                case 1: return scenario.getPoints(row).x;
-                case 2: return scenario.getPoints(row).y;
-                case 3: return scenario.getArea(scenario.getPoints(row));
+                case 0: return ColoredShapeStyle.getColor(row);
+                case 1: return String.format("(%.3f,%.3f)", scenario.getPoints(row).x, scenario.getPoints(row).y);
+                case 2: return scenario.cellArea(scenario.getPoints(row));
+                case 3: return DistributionMetrics.individualScore(scenario, scenario.getPoints(row));
             }
             return null;
         }

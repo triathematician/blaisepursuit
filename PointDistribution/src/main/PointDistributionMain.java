@@ -28,9 +28,11 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import org.bm.blaise.scio.algorithm.PolygonUtils;
-import org.bm.blaise.sequor.timer.BetterTimer;
-import org.bm.blaise.specto.plane.PlaneAxes;
-import org.bm.blaise.specto.visometry.Plottable;
+import primitive.style.PointStyle;
+import stormtimer.BetterTimer;
+import visometry.plane.PlaneAxes;
+import visometry.plottable.VPointSet;
+import visometry.plottable.VShape;
 
 /**
  * <p>
@@ -38,11 +40,22 @@ import org.bm.blaise.specto.visometry.Plottable;
  * </p>
  * @author Elisha Peterson
  */
-public class PointDistributionMain extends javax.swing.JFrame {
+public class PointDistributionMain extends javax.swing.JFrame
+        implements ChangeListener {
 
-    DistributionScenarioVis vis;
-    DistributionScenarioAlgorithmInterface algorithm;
-    LogValuePlottable maxDevP, meanDevP, meanSqrDevP;
+    /** Stores the scenario. */
+    DistributionScenario scenario;
+    /** Stores the active movement algorithm */
+    DistributionAlgorithm algorithm;
+
+    /** Stores the displayed points */
+    VPointSet<Point2D.Double> vPoints;
+    /** Stores the displayed domain */
+    VShape<Point2D.Double> vDomain;
+    /** Stores the computed tesselation */
+    CellVis vCells;
+
+    NumberLogPlottable maxDevP, meanDevP, meanSqrDevP;
     
     /** Creates new form PointPackingGUI */
     public PointDistributionMain() {
@@ -52,49 +65,36 @@ public class PointDistributionMain extends javax.swing.JFrame {
         EditorRegistration.registerEditors();
 
         algoBox.setModel(new DefaultComboBoxModel(Algorithms.values()));
-        algorithm = (DistributionScenarioAlgorithmInterface) algoBox.getSelectedItem();
+        algorithm = (DistributionAlgorithm) algoBox.getSelectedItem();
 
-        scenarioPlot.setDesiredRange(-.5,-.5,2.5,1.5);
-        scenarioPlot.addPlottable(new PlaneAxes("x", "y", PlaneAxes.Style.BOX));
-
-        metricPlot.setDesiredRange(0.0,0.0,300.0,3.0);
         metricPlot.setAspectRatio(0.02);
-        metricPlot.addPlottable(new PlaneAxes("step", "metric", PlaneAxes.Style.ELL));
-        metricPlot.addPlottable(maxDevP = new LogValuePlottable());
-        metricPlot.addPlottable(meanDevP = new LogValuePlottable());
-        metricPlot.addPlottable(meanSqrDevP = new LogValuePlottable());
+        metricPlot.setDesiredRange(0.0,0.0,300.0,3.0);
+        metricPlot.add(new PlaneAxes("step", "metric", PlaneAxes.AxesType.QUADRANT1));
+        metricPlot.add(maxDevP = new NumberLogPlottable());
+        metricPlot.add(meanDevP = new NumberLogPlottable());
+        metricPlot.add(meanSqrDevP = new NumberLogPlottable());
 
-        vis = new DistributionScenarioVis();
-        table.setScenario(vis.getScenario());
-        scenarioPlot.setDefaultCoordinateHandler(vis);
-        scenarioPlot.addPlottable(vis);
-        vis.addChangeListener(new ChangeListener(){
-            public void stateChanged(ChangeEvent e) {
-                table.updateModel();
-                int n = vis.scenario.getPoints().length;
-                double avg = vis.scenario.getAreaAverage();
-                double maxdiff = vis.scenario.getAreaMaxDifference();
-                double sumdiff = vis.scenario.getAreaSumDifference();
-                double sumsqdiff = vis.scenario.getAreaSumSquareDifference();
+        mainPlot.setDesiredRange(-1, -1, 3, 3);
+        mainPlot.add(new PlaneAxes("x", "y", PlaneAxes.AxesType.BOX));
 
-                meanL.setText(String.format("%.3f", avg));
-                maxDevL.setText(varFormatDouble(maxdiff / avg));
-                meanDevL.setText(varFormatDouble(sumdiff / (n * avg)));
-                meanSqrDevL.setText(varFormatDouble(sumsqdiff / (n * avg * avg)));
+        scenario = new DistributionScenario();
+        scenario.addChangeListener(this);
+        mainPlot.add(vDomain = new VShape<Point2D.Double>(scenario.getDomain()));
+        mainPlot.add(vPoints = new VPointSet<Point2D.Double>(scenario.getPoints()));
+        mainPlot.add(vCells = new CellVis(scenario.polygonMap.values().toArray(new Point2D.Double[][]{})));
+        vPoints.setPointStyle(new PointStyle(PointStyle.PointShape.CROSS, 3));
+        vPoints.addChangeListener(this);
+        vDomain.addChangeListener(this);
 
-                maxDevP.logValue(maxdiff / avg);
-                meanDevP.logValue(sumdiff / (n * avg));
-                meanSqrDevP.logValue(sumsqdiff / (n * avg * avg));
-                metricPlot.repaint();
-            }
-        });
-        vis.stateChanged(new ChangeEvent(this));
+        table.setScenario(scenario);
+        scenario.recompute();
 
         propPanel.removeAll();
+        propPanel.add("Scenario Parameters", new PropertySheet(scenario));
         propPanel.add("Algorithm Parameters", new PropertySheet(new MovementScenarioParameters()));
-        propPanel.add("Visometry", new PropertySheet(scenarioPlot.getVisometry()));
-        for (Plottable p : scenarioPlot.getPlottables())
-            propPanel.add(p.toString(), new PropertySheet(p));
+        propPanel.add("Visible Points", new PropertySheet(vPoints));
+        propPanel.add("Visible Domain Polygon", new PropertySheet(vDomain));
+        propPanel.add("Visible Area Cells", new PropertySheet(vCells));
 
     }
     
@@ -123,18 +123,11 @@ public class PointDistributionMain extends javax.swing.JFrame {
             pts[i] = null;
             while (pts[i] == null) {
                 pts[i] = new Point2D.Double(20*Math.random()-10, 20*Math.random()-10);
-                if (!PolygonUtils.inPolygon(pts[i], vis.getScenario().getBoundaryPolygon()))
+                if (!PolygonUtils.inPolygon(pts[i], scenario.getDomain()))
                     pts[i] = null;
             }
         }
-        vis.setPoints(pts);
-    }
-
-    String varFormatDouble(double d) {
-        if (Math.abs(d) < .001)
-            return String.format("%.3e", d);
-        else
-            return String.format("%.3f", d);
+        scenario.setPoints(pts);
     }
 
     /** This method is called from within the constructor to
@@ -158,11 +151,13 @@ public class PointDistributionMain extends javax.swing.JFrame {
         meanDevL = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         meanSqrDevL = new javax.swing.JLabel();
-        metricPlot = new org.bm.blaise.specto.plane.PlanePlotComponent();
+        jLabel9 = new javax.swing.JLabel();
+        scoreL = new javax.swing.JLabel();
+        metricPlot = new visometry.plane.PlanePlotComponent();
         jSplitPane1 = new javax.swing.JSplitPane();
-        scenarioPlot = new org.bm.blaise.specto.plane.PlanePlotComponent();
         jScrollPane1 = new javax.swing.JScrollPane();
         propPanel = new gui.RollupPanel();
+        mainPlot = new visometry.plane.PlanePlotComponent();
         jToolBar1 = new javax.swing.JToolBar();
         jLabel2 = new javax.swing.JLabel();
         loadButton = new javax.swing.JButton();
@@ -191,7 +186,7 @@ public class PointDistributionMain extends javax.swing.JFrame {
 
         jPanel2.setBackground(new java.awt.Color(204, 204, 255));
         jPanel2.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), javax.swing.BorderFactory.createEmptyBorder(4, 4, 4, 4)));
-        jPanel2.setLayout(new java.awt.GridLayout(4, 2, 4, 4));
+        jPanel2.setLayout(new java.awt.GridLayout(5, 2, 4, 4));
 
         jLabel5.setFont(new java.awt.Font("Tahoma", 3, 18));
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
@@ -238,14 +233,14 @@ public class PointDistributionMain extends javax.swing.JFrame {
         meanDevL.setOpaque(true);
         jPanel2.add(meanDevL);
 
-        jLabel8.setFont(new java.awt.Font("Tahoma", 3, 18));
+        jLabel8.setFont(new java.awt.Font("Tahoma", 3, 18)); // NOI18N
         jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel8.setText("Mean Sqr Dev =");
         jLabel8.setToolTipText("Mean Squared Deviation of Area from Average");
         jPanel2.add(jLabel8);
 
         meanSqrDevL.setBackground(new java.awt.Color(0, 0, 0));
-        meanSqrDevL.setFont(new java.awt.Font("Courier New", 1, 24));
+        meanSqrDevL.setFont(new java.awt.Font("Courier New", 1, 24)); // NOI18N
         meanSqrDevL.setForeground(new java.awt.Color(255, 255, 255));
         meanSqrDevL.setText("0.00");
         meanSqrDevL.setToolTipText("Mean Squared Deviation of Area from Average");
@@ -253,11 +248,24 @@ public class PointDistributionMain extends javax.swing.JFrame {
         meanSqrDevL.setOpaque(true);
         jPanel2.add(meanSqrDevL);
 
+        jLabel9.setFont(new java.awt.Font("Tahoma", 3, 18)); // NOI18N
+        jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel9.setText("SCORE =");
+        jLabel9.setToolTipText("Mean Squared Deviation of Area from Average");
+        jPanel2.add(jLabel9);
+
+        scoreL.setBackground(new java.awt.Color(0, 0, 0));
+        scoreL.setFont(new java.awt.Font("Courier New", 1, 24)); // NOI18N
+        scoreL.setForeground(new java.awt.Color(255, 255, 255));
+        scoreL.setText("0.00");
+        scoreL.setToolTipText("Mean Squared Deviation of Area from Average");
+        scoreL.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        scoreL.setOpaque(true);
+        jPanel2.add(scoreL);
+
         jPanel1.add(jPanel2);
 
-        metricPlot.setBackground(new java.awt.Color(204, 204, 255));
-        metricPlot.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        metricPlot.setLayout(new java.awt.BorderLayout());
+        metricPlot.setBackground(new java.awt.Color(0, 0, 0));
         jPanel1.add(metricPlot);
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.EAST);
@@ -266,22 +274,10 @@ public class PointDistributionMain extends javax.swing.JFrame {
         jSplitPane1.setOneTouchExpandable(true);
         jSplitPane1.setPreferredSize(new java.awt.Dimension(500, 300));
 
-        org.jdesktop.layout.GroupLayout scenarioPlotLayout = new org.jdesktop.layout.GroupLayout(scenarioPlot);
-        scenarioPlot.setLayout(scenarioPlotLayout);
-        scenarioPlotLayout.setHorizontalGroup(
-            scenarioPlotLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 373, Short.MAX_VALUE)
-        );
-        scenarioPlotLayout.setVerticalGroup(
-            scenarioPlotLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 425, Short.MAX_VALUE)
-        );
-
-        jSplitPane1.setRightComponent(scenarioPlot);
-
         jScrollPane1.setViewportView(propPanel);
 
         jSplitPane1.setLeftComponent(jScrollPane1);
+        jSplitPane1.setRightComponent(mainPlot);
 
         getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
@@ -391,8 +387,7 @@ public class PointDistributionMain extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void goButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButtonActionPerformed
-        Point2D.Double[] newPos = algorithm.getNewPositions(vis.getScenario());
-        vis.getVisualPoints().setValues(newPos);
+        scenario.setPoints(algorithm.getNewPositions(scenario));
         step++;
         stepLabel.setText("step = " + step);
         statusBar.setText("STATUS: updated point locations");
@@ -423,9 +418,10 @@ public class PointDistributionMain extends javax.swing.JFrame {
         statusBar.setText("Opening: " + file.getName() + "...");
         try {
             XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(file)));
-            vis.setScenario((DistributionScenario) decoder.readObject());
+            scenario = (DistributionScenario) decoder.readObject();
             decoder.close();
-            table.setScenario(vis.getScenario());
+            table.setScenario(scenario);
+            scenario.recompute();
             statusBar.setText(statusBar.getText() + "... successful!");
         } catch (FileNotFoundException ex) {
             statusBar.setText(statusBar.getText() + " ERROR -- FILE NOT FOUND!");
@@ -438,7 +434,7 @@ public class PointDistributionMain extends javax.swing.JFrame {
             XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(new FileOutputStream(file)));
             encoder.setPersistenceDelegate(Point2D.Double.class, new DefaultPersistenceDelegate(new String[]{"x","y"}));
             encoder.setPersistenceDelegate(Point2.class, new DefaultPersistenceDelegate(new String[]{"x","y"}));
-            encoder.writeObject(vis.getScenario());
+            encoder.writeObject(scenario);
             encoder.close();
             statusBar.setText(statusBar.getText() + " successful.");
         } catch (FileNotFoundException ex) {
@@ -469,7 +465,7 @@ public class PointDistributionMain extends javax.swing.JFrame {
     }//GEN-LAST:event_saveButtonActionPerformed
 
     private void algoBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_algoBoxActionPerformed
-        algorithm = (DistributionScenarioAlgorithmInterface) algoBox.getSelectedItem();
+        algorithm = (DistributionAlgorithm) algoBox.getSelectedItem();
         statusBar.setText("STATUS: changed algorithm");
     }//GEN-LAST:event_algoBoxActionPerformed
 
@@ -494,11 +490,10 @@ public class PointDistributionMain extends javax.swing.JFrame {
         timer = new BetterTimer(100);
         timer.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e) {
-                if (!((DistributionScenario)vis.getScenario()).computing) {
+                if (!scenario.computing) {
                     try {
-                        Point2D.Double[] newPos = algorithm.getNewPositions(vis.getScenario());
-                        vis.getVisualPoints().setValues(newPos); // this recomputes the visometry
-                        scenarioPlot.repaint();
+                        Point2D.Double[] newPos = algorithm.getNewPositions(scenario);
+                        scenario.setPoints(newPos); // this recomputes the visometry
                         step++;
                         stepLabel.setText("step = " + step);
                         statusBar.setText("STATUS: updated point locations");
@@ -544,6 +539,7 @@ public class PointDistributionMain extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
@@ -554,22 +550,71 @@ public class PointDistributionMain extends javax.swing.JFrame {
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JButton loadButton;
+    private visometry.plane.PlanePlotComponent mainPlot;
     private javax.swing.JLabel maxDevL;
     private javax.swing.JLabel meanDevL;
     private javax.swing.JLabel meanL;
     private javax.swing.JLabel meanSqrDevL;
-    private org.bm.blaise.specto.plane.PlanePlotComponent metricPlot;
+    private visometry.plane.PlanePlotComponent metricPlot;
     private javax.swing.JButton numButton;
     private javax.swing.JButton playButton;
     private gui.RollupPanel propPanel;
     private javax.swing.JButton saveAsButton;
     private javax.swing.JButton saveButton;
-    private org.bm.blaise.specto.plane.PlanePlotComponent scenarioPlot;
+    private javax.swing.JLabel scoreL;
     private javax.swing.JLabel statusBar;
     private javax.swing.JLabel stepLabel;
     private javax.swing.JButton stopButton;
     private main.PointDistributionTable table;
     // End of variables declaration//GEN-END:variables
+
+    boolean adjustingScenario = false;
+
+    public void stateChanged(ChangeEvent e) {
+
+        if (e.getSource() == vPoints) {
+            adjustingScenario = true;
+            scenario.setPoints(vPoints.getPoints());
+            adjustingScenario = false;
+        } else if (e.getSource() == vDomain) {
+            adjustingScenario = true;
+            scenario.setDomain(vDomain.getPoints());
+            adjustingScenario = false;
+        } else if (e.getSource() == scenario) {
+            if (!adjustingScenario) {
+                vPoints.setPoints(scenario.getPoints());
+                vDomain.setPoints(scenario.getDomain());
+            }
+
+            vCells.setPolys(scenario.polygonMap.values().toArray(new Point2D.Double[][]{}));
+            table.updateModel();
+
+            
+            int n = scenario.getPoints().length;
+            double avg = scenario.meanArea();
+            double maxdiff = scenario.maxAreaDeviation();
+            double sumdiff = scenario.sumDeviation();
+            double sumsqdiff = scenario.sumSquaredDeviation();
+
+            meanL.setText(String.format("%.3f", avg));
+            maxDevL.setText(varFormatDouble(maxdiff / avg));
+            meanDevL.setText(varFormatDouble(sumdiff / (n * avg)));
+            meanSqrDevL.setText(varFormatDouble(sumsqdiff / (n * avg * avg)));
+            scoreL.setText(varFormatDouble(DistributionMetrics.teamScore(scenario)));
+
+            maxDevP.logValue(maxdiff / avg);
+            meanDevP.logValue(sumdiff / (n * avg));
+            meanSqrDevP.logValue(sumsqdiff / (n * avg * avg));
+            metricPlot.repaint();
+        }
+    }
+
+    String varFormatDouble(double d) {
+        if (Math.abs(d) < .001)
+            return String.format("%.3e", d);
+        else
+            return String.format("%.3f", d);
+    }
 
 
 }

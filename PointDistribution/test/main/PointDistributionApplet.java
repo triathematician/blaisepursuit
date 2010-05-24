@@ -1,11 +1,5 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/*
  * PointDistributionApplet.java
- *
  * Created on Mar 19, 2010, 12:06:16 PM
  */
 
@@ -35,8 +29,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import org.bm.blaise.scio.algorithm.PolygonUtils;
 import org.bm.blaise.sequor.timer.BetterTimer;
-import org.bm.blaise.specto.plane.PlaneAxes;
-import org.bm.blaise.specto.visometry.Plottable;
 
 /**
  *
@@ -45,8 +37,8 @@ import org.bm.blaise.specto.visometry.Plottable;
 public class PointDistributionApplet extends javax.swing.JApplet {
 
     DistributionScenarioVis vis;
-    DistributionScenarioAlgorithmInterface algorithm;
-    LogValuePlottable maxDevP, meanDevP, meanSqrDevP;
+    DistributionAlgorithm algorithm;
+    NumberLogPlottable maxDevP, meanDevP, meanSqrDevP;
 
     /** Initializes the applet PointDistributionApplet */
     public void init() {
@@ -59,7 +51,7 @@ public class PointDistributionApplet extends javax.swing.JApplet {
                     EditorRegistration.registerEditors();
 
                     algoBox.setModel(new DefaultComboBoxModel(Algorithms.values()));
-                    algorithm = (DistributionScenarioAlgorithmInterface) algoBox.getSelectedItem();
+                    algorithm = (DistributionAlgorithm) algoBox.getSelectedItem();
 
                     scenarioPlot.setDesiredRange(-.5,-.5,2.5,1.5);
                     scenarioPlot.addPlottable(new PlaneAxes("x", "y", PlaneAxes.Style.BOX));
@@ -67,9 +59,9 @@ public class PointDistributionApplet extends javax.swing.JApplet {
                     metricPlot.setDesiredRange(0.0,0.0,300.0,3.0);
                     metricPlot.setAspectRatio(0.02);
                     metricPlot.addPlottable(new PlaneAxes("step", "metric", PlaneAxes.Style.ELL));
-                    metricPlot.addPlottable(maxDevP = new LogValuePlottable());
-                    metricPlot.addPlottable(meanDevP = new LogValuePlottable());
-                    metricPlot.addPlottable(meanSqrDevP = new LogValuePlottable());
+                    metricPlot.addPlottable(maxDevP = new NumberLogPlottable());
+                    metricPlot.addPlottable(meanDevP = new NumberLogPlottable());
+                    metricPlot.addPlottable(meanSqrDevP = new NumberLogPlottable());
 
                     vis = new DistributionScenarioVis();
                     table.setScenario(vis.getScenario());
@@ -79,10 +71,10 @@ public class PointDistributionApplet extends javax.swing.JApplet {
                         public void stateChanged(ChangeEvent e) {
                             table.updateModel();
                             int n = vis.scenario.getPoints().length;
-                            double avg = vis.scenario.getAreaAverage();
-                            double maxdiff = vis.scenario.getAreaMaxDifference();
-                            double sumdiff = vis.scenario.getAreaSumDifference();
-                            double sumsqdiff = vis.scenario.getAreaSumSquareDifference();
+                            double avg = vis.scenario.meanArea();
+                            double maxdiff = vis.scenario.maxAreaDeviation();
+                            double sumdiff = vis.scenario.sumDeviation();
+                            double sumsqdiff = vis.scenario.sumSquaredDeviation();
 
                             meanL.setText(String.format("%.3f", avg));
                             maxDevL.setText(varFormatDouble(maxdiff / avg));
@@ -136,7 +128,7 @@ public class PointDistributionApplet extends javax.swing.JApplet {
             pts[i] = null;
             while (pts[i] == null) {
                 pts[i] = new Point2D.Double(20*Math.random()-10, 20*Math.random()-10);
-                if (!PolygonUtils.inPolygon(pts[i], vis.getScenario().getBoundaryPolygon()))
+                if (!PolygonUtils.inPolygon(pts[i], vis.getScenario().getDomain()))
                     pts[i] = null;
             }
         }
@@ -484,7 +476,7 @@ public class PointDistributionApplet extends javax.swing.JApplet {
 }//GEN-LAST:event_saveAsButtonActionPerformed
 
     private void algoBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_algoBoxActionPerformed
-        algorithm = (DistributionScenarioAlgorithmInterface) algoBox.getSelectedItem();
+        algorithm = (DistributionAlgorithm) algoBox.getSelectedItem();
         statusBar.setText("STATUS: changed algorithm");
 }//GEN-LAST:event_algoBoxActionPerformed
 

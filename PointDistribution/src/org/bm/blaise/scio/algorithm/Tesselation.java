@@ -7,6 +7,7 @@ package org.bm.blaise.scio.algorithm;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -113,23 +114,22 @@ public class Tesselation {
      * The i-edge includes the i-vertex and the (i+1)-vertex.
      */
     public static class Polygon {
-        List<Point2D.Double> vertices;
+        Point2D.Double[] vertices;
         List<Edge> edges;
         public Polygon(Point2D.Double... vertices) {
-            this.vertices = new ArrayList<Point2D.Double>();
+            this.vertices = vertices;
             edges = new ArrayList<Edge>();
             for (int i = 0; i < vertices.length; i++) {
-                this.vertices.add(vertices[i]);
                 Edge newEdge = new Edge(vertices[i], vertices[(i+1)%vertices.length]);
                 newEdge.p1 = this;
                 edges.add(newEdge);
             }
         }
-        public Point2D.Double[] getVerticesAsArray() {
-            return vertices.toArray(new Point2D.Double[]{});
+        public Point2D.Double[] getVertices() {
+            return vertices;
         }
         @Override public String toString() {
-            return "Polygon[ " + vertices + " ]";
+            return "Polygon[ " + Arrays.toString(vertices) + " ]";
         }
     }
 

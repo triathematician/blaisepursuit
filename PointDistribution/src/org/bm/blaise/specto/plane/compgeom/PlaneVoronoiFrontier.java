@@ -5,24 +5,24 @@
 
 package org.bm.blaise.specto.plane.compgeom;
 
+import coordinate.ScreenSampleDomainProvider;
 import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import org.bm.blaise.scio.algorithm.Tesselation.Polygon;
+import org.bm.blaise.scio.algorithm.Tesselation;
 import org.bm.blaise.scio.algorithm.voronoi.VoronoiFrontier;
-import org.bm.blaise.scio.algorithm.voronoi.VoronoiFrontier.FrontierArc;
 import org.bm.blaise.scio.algorithm.voronoi.VoronoiUtils;
-import org.bm.blaise.specto.plottable.VPointSet;
-import org.bm.blaise.specto.primitive.BlaisePalette;
-import org.bm.blaise.specto.primitive.PathStyle;
-import org.bm.blaise.specto.primitive.PointStyle.PointShape;
-import org.bm.blaise.specto.visometry.VisometryGraphics;
-import org.bm.blaise.specto.visometry.VisometryMouseEvent;
+import primitive.GraphicMesh;
+import primitive.style.MeshStyle;
+import primitive.style.PathStyle;
+import scio.coordinate.RealInterval;
+import util.ChangeBroadcaster;
+import visometry.PointDragListener;
+import visometry.VDraggablePrimitiveEntry;
+import visometry.VPrimitiveEntry;
+import visometry.plottable.VPointSet;
 
 /**
  * <p>
@@ -36,192 +36,126 @@ import org.bm.blaise.specto.visometry.VisometryMouseEvent;
  * </p>
  * @author Elisha Peterson
  */
-public class PlaneVoronoiFrontier extends VPointSet<Point2D.Double> {
+public class PlaneVoronoiFrontier extends VPointSet<Point2D.Double>
+        implements PointDragListener<Point2D.Double> {
 
-    /** Whether directrix and frontier are displayed and used in calcs */
-    boolean directrixVisible = true;
-    /** Style used for the directrix. */
-    PathStyle directrixStyle = new PathStyle(BlaisePalette.STANDARD.func1());
-    /** Class responsible for the algorithm. */
+    /** Base object encoding the algorithm and scenario */
     VoronoiFrontier frontier;
 
-    /** Style used for the triangulation. */
-    PathStyle delaunayStyle = new PathStyle(BlaisePalette.STANDARD.vector());
-    /** Whether delaunay lines are visible. */
-    boolean delaunayVisible = false;
+    /** Stores entry for the directrix. */
+    VDraggablePrimitiveEntry dxEntry;
+    /** Stores entry for the frontier */
+    VPrimitiveEntry frontierEntry;
+    /** Stores entry for the tesselation. */
+    VPrimitiveEntry tessEntry;
 
-    /** This plottable displays the resselation. */
-    PlaneTesselation voronoiTesselation = new PlaneTesselation(null);
-    /** Whether tesselation is visible. */
-    boolean tesselationVisible = true;
-
-    //
-    // CONSTRUCTORS
-    //
-    
-    /** Construct with a list of values. */
     public PlaneVoronoiFrontier(Point2D.Double... values) {
         super(values);
-        setLabelsVisible(false);
-        frontier = new VoronoiFrontier(getValuesAsList());
-        setDirectrix(0);
-        addChangeListener(new ChangeListener(){
-            public void stateChanged(ChangeEvent e) {
-                frontier.setPoints(getValuesAsList());
-                if (!directrixVisible) {
-                    double curDir = frontier.getMaxDirectrix();
-                    frontier.setMaxDirectrix(Double.POSITIVE_INFINITY);
-                    frontier.calculate();
-                    frontier.setMaxDirectrix(curDir);
-                } else {
-                    frontier.calculate();
-                }
-                voronoiTesselation.setTesselation(frontier.getTesselation());
-                Color col = new Color(200, 200, 200);
-                Map<Polygon, Color> colorMap = new HashMap<Polygon, Color>();
-                for(Point2D.Double v : PlaneVoronoiFrontier.this.values) {
-                    colorMap.put(frontier.getPolygonMap().get(v), col);
-                    col = PlaneTesselation.nextColor(col, 13, 83, 157);
-                }
-                voronoiTesselation.setColorMap(colorMap);
-            }
-        });
-        fireStateChanged();
-    }
-
-    //
-    // GETTERS & SETTERS
-    //
-
-    public double getDirectrix() {
-        if (frontier != null)
-            return frontier.getMaxDirectrix();
-        else
-            return Double.NaN;
-    }
-
-    public void setDirectrix(double directrix) {
-        if (frontier != null && frontier.getMaxDirectrix() != directrix) {
-            frontier.setMaxDirectrix(directrix);
-            fireStateChanged();
-        }
-    }
-
-    public boolean isDirectrixVisible() {
-        return directrixVisible;
-    }
-
-    public void setDirectrixVisible(boolean directrixVisible) {
-        if (this.directrixVisible != directrixVisible) {
-            this.directrixVisible = directrixVisible;
-            fireStateChanged();
-        }
-    }
-
-    public boolean isDelaunayVisible() {
-        return delaunayVisible;
-    }
-
-    public void setDelaunayVisible(boolean delaunayVisible) {
-        this.delaunayVisible = delaunayVisible;
-        fireStateChanged();
-    }
-
-    public boolean isTesselationVisible() {
-        return tesselationVisible;
-    }
-
-    public void setTesselationVisible(boolean tesselationVisible) {
-        this.tesselationVisible = tesselationVisible;
-        fireStateChanged();
-    }
-
-    /** Retrieves values as a list instead of an array. */
-    List<Point2D.Double> getValuesAsList() {
-        List<Point2D.Double> aPoints = new ArrayList<Point2D.Double>();
-        for (int i = 0; i < values.length; i++) { aPoints.add(values[i]); }
-        return aPoints;
-    }
-
-    public VoronoiFrontier getFrontier() {
-        return frontier;
-    }
-
-    //
-    // PAINT METHODS
-    //
-
-    @Override
-    public void draw(VisometryGraphics<Point2D.Double> vg) {
-        // draws the tesselation
-        if (tesselationVisible)
-            voronoiTesselation.draw(vg);
-
-        if (directrixVisible) {
-            // draws the directri
-            double directrix = getDirectrix();
-            vg.drawSegment(new Point2D.Double(directrix, vg.getMinCoord().y), new Point2D.Double(directrix, vg.getMaxCoord().y), directrixStyle);
-            PointShape shp = pointStyle.getShape();
-            vg.setPointStyle(pointStyle);
-            pointStyle.setShape(PointShape.CROSS);
-            vg.drawPoint(new Point2D.Double(directrix, 0));
-            pointStyle.setShape(shp);
-
-            // draws the frontier curve
-            List<Point2D.Double> frontierCurve = new ArrayList<Point2D.Double>();
-            for (FrontierArc arc : frontier) {
-                double ly = Math.max(-10.0, arc.lowerY(directrix));
-                double uy = Math.min(10.0, arc.upperY(directrix));
-                for (double y = ly; y <= uy; y += .05)
-                    frontierCurve.add(new Point2D.Double(VoronoiUtils.getXOnParabolaOfGivenFocusAndDirectrix(y, arc.getPoint(), directrix), y));
-            }
-            vg.drawPath(frontierCurve.toArray(new Point2D.Double[]{}));
-        }
-
-        // draws delaunay connections
-        if (delaunayVisible) {
-            List<Point2D.Double[]> connections = frontier.getAdjacencyList();
-            for (Point2D.Double[] c : connections)
-                vg.drawSegment(c[0], c[1], delaunayStyle);
-        }
-
-        // draws the points
-        super.draw(vg);
-    }
-
-    //
-    // MOUSE HANDLING
-    //
-
-    boolean clickDirectrix = false;
-
-    @Override
-    public boolean isClickablyCloseTo(VisometryMouseEvent<Point2D.Double> e) {
-        boolean clickPoint = super.isClickablyCloseTo(e);
-        if (clickPoint) {
-            clickDirectrix = false;
-            return true;
-        } else {
-            if (e.withinRangeOf(new Point2D.Double(getDirectrix(), 0), 5)) {
-                clickDirectrix = true;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public void mouseDragged(VisometryMouseEvent<Point2D.Double> e) {
-        if (clickDirectrix) {
-            setDirectrix(e.getCoordinate().x);
-        } else {
-            super.mouseDragged(e);
-        }
+        frontier = new VoronoiFrontier(Arrays.asList(values));
+        frontier.setMaxDirectrix(0.0);
+        addPrimitive(dxEntry = new VDraggablePrimitiveEntry(null, new PathStyle(), this));
+        addPrimitive(frontierEntry = new VPrimitiveEntry(null, dxEntry.style));
+        addPrimitive(tessEntry = new VPrimitiveEntry(null, new MeshStyle()));
     }
 
     @Override
     public String toString() {
         return "Voronoi Tesselation";
     }
+
+    /** @return location of directrix */
+    public double getDirectrix() { return frontier == null ? Double.NaN : frontier.getMaxDirectrix(); }
+    /** Sets the directrix value */
+    public void setDirectrix(double directrix) { if (frontier != null && directrix != frontier.getMaxDirectrix()) { frontier.setMaxDirectrix(directrix); firePlottableChanged(); } }
+
+    /** @return directrix style */
+    public PathStyle getDirectrixStyle() { return (PathStyle) dxEntry.style; }
+    /** Sets new directrix style */
+    public void setDirectrixStyle(PathStyle style) { dxEntry.style = style; firePlottableStyleChanged(); }
+    /** @return directrix visibility */
+    public boolean isDirectrixVisible() { return dxEntry.visible; }
+    /** Sets directrix visibility */
+    public void setDirectrixVisible(boolean visibility) { dxEntry.visible = visibility; frontierEntry.visible = false; firePlottableStyleChanged(); }
+
+    /** @return tesselation style */
+    public MeshStyle getTesselationStyle() { return (MeshStyle) tessEntry.style; }
+    /** Sets new tesselation style */
+    public void setTesselationStyle(MeshStyle style) { tessEntry.style = style; firePlottableStyleChanged(); }
+    /** @return tesselation visibility */
+    public boolean isTesselationVisible() { return tessEntry.visible; }
+    /** Sets tesselation visibility */
+    public void setTesselationVisibile(boolean visibility) { tessEntry.visible = visibility; firePlottableStyleChanged(); }
+
+    //
+    // DRAW METHODS
+    //
+
+    /** y-axis bounds */
+    transient RealInterval yInterval;
+
+    @Override
+    protected void recompute() {
+        // get vertical bounds
+        if (yInterval == null) {
+            yInterval = (RealInterval) parent.requestDomain("y", Double.class);
+            if (yInterval == null)
+                throw new IllegalStateException("Unable to retrieve appropriate domain from parent class!");
+            ((ChangeBroadcaster)yInterval).addChangeListener(this);
+        }
+
+        // update the directrix
+        double curDir = frontier.getMaxDirectrix();
+        dxEntry.setLocal(new Point2D.Double[]{ 
+            new Point2D.Double(curDir, yInterval.getMinimum()),
+            new Point2D.Double(curDir, yInterval.getMaximum())
+        });
+
+        // recompute the voronoi frontier tesselation
+        if (!dxEntry.visible) {
+            frontier.setMaxDirectrix(Double.POSITIVE_INFINITY);
+            frontier.calculate();
+            frontier.setMaxDirectrix(curDir);
+        } else {
+            frontier.calculate();
+        }
+
+        // create the mesh associated with the tesselation
+        Tesselation tess = frontier.getTesselation();
+        List<Point2D.Double> vv = tess.getVertices();
+        Point2D.Double[] points = vv.toArray(new Point2D.Double[]{});
+        int[][] edges = new int[tess.getEdges().size()][2];
+        int pos = 0;
+        for (Tesselation.Edge e : tess.getEdges()) {
+            edges[pos][0] = vv.indexOf(e.v1);
+            edges[pos][1] = vv.indexOf(e.v2);
+            pos++;
+        }
+        ArrayList<int[]> areas = new ArrayList<int[]>();
+        for (Tesselation.Polygon p : tess.getPolygons()) {
+            Point2D.Double[] pp = p.getVertices();
+            int[] summand = new int[pp.length];
+            for (int i = 0; i < pp.length; i++)
+                summand[i] = vv.indexOf(pp[i]);
+            areas.add(summand);
+        }
+        tessEntry.setLocal(new GraphicMesh<Point2D.Double>(points, edges, areas));
+
+        // recompute frontier curve (only if directrix is visible)
+        if (dxEntry.visible) {
+            List<Point2D.Double> frontierCurve = new ArrayList<Point2D.Double>();
+            for (VoronoiFrontier.FrontierArc arc : frontier) {
+                double diff = (Double) parent.requestScreenSampleDomain("y", Double.class, 1f, ScreenSampleDomainProvider.HINT_REGULAR).getSampleDiff();
+                double ly = Math.max(yInterval.getMinimum(), arc.lowerY(curDir));
+                double uy = Math.min(yInterval.getMaximum(), arc.upperY(curDir));
+                for (double y = ly; y <= uy; y += diff)
+                    frontierCurve.add(new Point2D.Double(VoronoiUtils.getXOnParabolaOfGivenFocusAndDirectrix(y, arc.getPoint(), curDir), y));
+            }
+            frontierEntry.setLocal(frontierCurve.toArray(new Point2D.Double[]{}));
+        }
+
+        needsComputation = false;
+    }
+
+
 
 }

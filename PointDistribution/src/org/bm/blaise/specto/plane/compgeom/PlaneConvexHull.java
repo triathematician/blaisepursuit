@@ -6,47 +6,35 @@
 package org.bm.blaise.specto.plane.compgeom;
 
 import java.awt.geom.Point2D;
-import java.awt.geom.Point2D.Double;
-import org.bm.blaise.specto.plottable.VPolygon;
-import org.bm.blaise.specto.visometry.VisometryGraphics;
 import org.bm.blaise.scio.algorithm.PointSetAlgorithms;
+import primitive.style.ShapeStyle;
+import visometry.VPrimitiveEntry;
+import visometry.plottable.VPointSet;
 
 /**
  * <p>
- *    This class displays the convex hull of the provided list of points. Points may
- *    be moved around dynamically while the hull is recomputed.
+ *    This class displays the convex hull of the provided list of points.
+ *    The points are handled by an underlying set of points. Whenever that set
+ *    changes, e.g. when the user moves a point around, the hull computation
+ *    is done again.
  * </p>
  * @author Elisha Peterson
  */
-public class PlaneConvexHull extends VPolygon<Point2D.Double> {
+public class PlaneConvexHull extends VPointSet<Point2D.Double> {
 
-    Point2D.Double[] hull;
+    /** Stores the hull outline */
+    VPrimitiveEntry hullEntry;
 
     /** Construct with a provided list of double values. */
     public PlaneConvexHull(Point2D.Double[] values) {
         super(values);
-        hull = PointSetAlgorithms.convexHull(values);
+        addPrimitive(hullEntry = new VPrimitiveEntry(null, new ShapeStyle()));
     }
 
     @Override
-    protected void fireStateChanged() {
-        hull = PointSetAlgorithms.convexHull(values);
-        super.fireStateChanged();
+    protected void recompute() {
+        hullEntry.setLocal(PointSetAlgorithms.convexHull((Point2D.Double[]) entry.local));
+        needsComputation = false;
     }
-
-    @Override
-    public void draw(VisometryGraphics<Double> vg) {
-        vg.setPointStyle(pointStyle);
-        vg.drawPoints(values);
-        if (labelsVisible) {
-            if (labelStyle != null)
-                vg.setStringStyle(labelStyle);
-            for (int i = 0; i < values.length; i++)
-                vg.drawString(getValueString(i), values[i], 5, -5);
-        }
-
-        vg.drawShape(hull, shapeStyle);
-        if (pointsVisible)
-            vg.drawPoints(hull);
-    }
+    
 }

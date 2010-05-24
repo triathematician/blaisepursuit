@@ -64,10 +64,10 @@ public class PolygonIntersectionUtils {
         try {
             result = pg.traceLeft(v0, v1);
         } catch (Exception ex) {
-            System.out.println("Failed to find polygon intersection: " + ex);
-            System.out.println("... polygon 1 = " + Arrays.toString(poly1));
-            System.out.println("... polygon 2 = " + Arrays.toString(poly2));
-            System.out.println("... returning empty array");
+//            System.out.println("Failed to find polygon intersection: " + ex);
+//            System.out.println("... polygon 1 = " + Arrays.toString(poly1));
+//            System.out.println("... polygon 2 = " + Arrays.toString(poly2));
+//            System.out.println("... returning empty array");
             return new Point2D.Double[]{};
         }
         if (VERBOSE) System.out.println("  RESULT: " + Arrays.toString(result));
@@ -191,6 +191,8 @@ public class PolygonIntersectionUtils {
                 last = cur;
                 cur = next;
                 next = nextLeft(last, cur);
+                if (next == last || next == cur)
+                    throw new IllegalStateException("Algorithm broken: traceLeft(" + v0 + ", " + v1 + ") at partial solution " + result);
             }
             return result.toArray(new Point2D.Double[]{});
         }

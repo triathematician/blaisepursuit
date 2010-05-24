@@ -1,5 +1,5 @@
 /*
- * DistributionScenarioAlgorithmInterface.java
+ * DistributionAlgorithm.java
  * Created Jan 28, 2010
  */
 
@@ -12,7 +12,7 @@ import java.awt.geom.Point2D;
  *
  * @author Elisha Peterson
  */
-public interface DistributionScenarioAlgorithmInterface {
+public interface DistributionAlgorithm {
 
     /**
      * This method uses a supplied distribution scenario to compute new locations of points, which

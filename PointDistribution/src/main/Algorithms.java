@@ -20,7 +20,7 @@ import static main.MovementScenarioParameters.*;
  * @author Elisha Peterson, ...
  */
 public enum Algorithms
-        implements DistributionScenarioAlgorithmInterface {
+        implements DistributionAlgorithm {
 
     /** Algorithm has each point go towards the neighbor with the greatest area. */
     Go_to_Neighbor_with_Largest_Area() {
@@ -41,15 +41,15 @@ public enum Algorithms
                 // here we iterate over all the neighbors of the current point to find the one with maximum area
                 Point2D.Double bestNbr = null;
                 double bestArea = 0.0;
-                for (Point2D.Double nbr : scenario.pointsAdjacentTo(oldp[i])) {
-                    double area = scenario.getArea(nbr);
+                for (Point2D.Double nbr : scenario.neighbors(oldp[i])) {
+                    double area = scenario.cellArea(nbr);
                     if (area > bestArea) {
                         bestNbr = nbr;
                         bestArea = area;
                     }                    
                 }
                 // don't move if already have largest area
-                if (scenario.getArea(oldp[i]) > bestArea)
+                if (scenario.cellArea(oldp[i]) > bestArea)
                     newp[i] = (Point2D.Double) oldp[i].clone();
                 else {
                     // this is a unit vector pointing from oldPoints[i] to bestNbr
@@ -62,7 +62,7 @@ public enum Algorithms
             }
 
             // don't let points move outside the boundary
-            keepPointsInPolygon(newp, scenario.getBoundaryPolygon());
+            keepPointsInPolygon(newp, scenario.getDomain());
 
             return newp;
         }
@@ -88,10 +88,10 @@ public enum Algorithms
 
             for (int i = 0; i < n; i++) {
                 Point2D.Double dir = new Point2D.Double();
-                double area = scenario.getArea(oldp[i]);
-                for (Point2D.Double nbr : scenario.pointsAdjacentTo(oldp[i])) {
+                double area = scenario.cellArea(oldp[i]);
+                for (Point2D.Double nbr : scenario.neighbors(oldp[i])) {
                     // this is the difference in areas
-                    double dArea = scenario.getArea(nbr) - area;
+                    double dArea = scenario.cellArea(nbr) - area;
                     // this is a scaling factor used to determine the relative movement
                     dArea *= MovementScenarioParameters.TO_NEIGHBOR_BY_WEIGHTED_AREA_FACTOR;
 
@@ -104,7 +104,7 @@ public enum Algorithms
             }
 
             // don't let points move outside the boundary
-            keepPointsInPolygon(newp, scenario.getBoundaryPolygon());
+            keepPointsInPolygon(newp, scenario.getDomain());
 
             return newp;
         }
@@ -127,7 +127,7 @@ public enum Algorithms
 
             // calculate an approximate value to move the point by; use a value related
             // to the perimeter of the polygon and the square root of the number of players
-            double scenarioDX = PolygonUtils.perimeterOf(scenario.getBoundaryPolygon());
+            double scenarioDX = PolygonUtils.perimeterOf(scenario.getDomain());
             scenarioDX *= RANDOM_MOTION_FACTOR / Math.sqrt(n);
 
             // generate a random index
@@ -147,7 +147,7 @@ public enum Algorithms
                     newp[i] = (Point2D.Double) oldp[i].clone();
 
             // don't let changed point move outside the boundary
-            keepPointInPolygon(newp[iRandom], scenario.getBoundaryPolygon());
+            keepPointInPolygon(newp[iRandom], scenario.getDomain());
 
             return newp;
         }
@@ -172,44 +172,44 @@ public enum Algorithms
             Point2D.Double[] newp = new Point2D.Double[n];
             
             // this describes the movements in the last iteration
-            Point2D.Double[] oldmove = scenario.getLastMovement();
+            Point2D.Double[] oldmove = scenario.lastMovement();
             // this will store the movements in the new iteration
             Point2D.Double[] newmove = new Point2D.Double[n];
 
             // this is the average area in the simulation
-            double avg = scenario.getAreaAverage();
+            double avg = scenario.meanArea();
 
             
             for (int i = 0; i < n; i++) {
-                if (scenario.getArea(oldp[i]) < MIN_AREA_THRESHOLD * avg) {
+                if (scenario.cellArea(oldp[i]) < MIN_AREA_THRESHOLD * avg) {
                     // move away from the boundary or closest neighbor
 
                     // this stores the point to move from
                     Point2D.Double moveAwayFrom = null;
 
-                    if (scenario.isAdjacentToBoundary(oldp[i]))
+                    if (scenario.isBoundaryPoint(oldp[i]))
                         // if adjacent to boundary, move away from nearest boundary
-                        moveAwayFrom = PolygonUtils.closestPointOnPolygon(oldp[i], scenario.getBoundaryPolygon());
+                        moveAwayFrom = PolygonUtils.closestPointOnPolygon(oldp[i], scenario.getDomain());
                     else
                         // otherwise, move away from closest neighbor
-                        moveAwayFrom = getClosest(oldp[i], scenario.pointsAdjacentTo(oldp[i]));
+                        moveAwayFrom = getClosest(oldp[i], scenario.neighbors(oldp[i]));
 
                     newmove[i] = new Point2D.Double(
                             -MOVE_TO_NBR_FACTOR * (moveAwayFrom.x - oldp[i].x),
                             -MOVE_TO_NBR_FACTOR * (moveAwayFrom.y - oldp[i].y) );
 
-                } else if (scenario.getArea(oldp[i]) > MAX_AREA_THRESHOLD * avg) {
+                } else if (scenario.cellArea(oldp[i]) > MAX_AREA_THRESHOLD * avg) {
                     // move toward the boundary or farthest neighbor
 
                     // this stores the point to move to
                     Point2D.Double moveToward = null;
 
-                    if (scenario.isAdjacentToBoundary(oldp[i]))
+                    if (scenario.isBoundaryPoint(oldp[i]))
                         // if adjacent to boundary, move toward nearest boundary
-                        moveToward = PolygonUtils.closestPointOnPolygon(oldp[i], scenario.getBoundaryPolygon());
+                        moveToward = PolygonUtils.closestPointOnPolygon(oldp[i], scenario.getDomain());
                     else
                         // otherwise, move away from farthest neighbor
-                        moveToward = getFarthest(oldp[i], scenario.pointsAdjacentTo(oldp[i]));
+                        moveToward = getFarthest(oldp[i], scenario.neighbors(oldp[i]));
 
                     newmove[i] = new Point2D.Double(
                             MOVE_TO_NBR_FACTOR * (moveToward.x - oldp[i].x),
@@ -219,7 +219,7 @@ public enum Algorithms
                     // mimic neighbors movement
                     
                     newmove[i] = new Point2D.Double();
-                    for (Point2D.Double pt : scenario.pointsAdjacentTo(oldp[i])) {
+                    for (Point2D.Double pt : scenario.neighbors(oldp[i])) {
                         // find index of this point to retrieve prior move
                         int index = -1;
                         for (int j = 0; j < n; j++)
@@ -239,81 +239,91 @@ public enum Algorithms
                 newp[i] = new Point2D.Double(oldp[i].x + newmove[i].x, oldp[i].y + newmove[i].y);
 
             // don't let points move outside the boundary
-            keepPointsInPolygon(newp, scenario.getBoundaryPolygon());
+            keepPointsInPolygon(newp, scenario.getDomain());
 
             return newp;
         }
     },
     
-    /** Boundary Zone algorithm: no knowledge of areas, just nearest neighbors */
-    Boundary_Zone() {
-        @Override public String toString() { return "Keep out of a boundary zone"; }
+//    /** Boundary Zone algorithm: no knowledge of areas, just nearest neighbors */
+//    Boundary_Zone() {
+//        @Override public String toString() { return "Keep out of a boundary zone"; }
+//
+//        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) {
+//            // this is the set of points in the previous iteration
+//            Point2D.Double[] oldp = scenario.getPoints();
+//            // this is the number of points
+//            int n = oldp.length;
+//            // here we initialize a new array for the new locations of the points
+//            Point2D.Double[] newp = new Point2D.Double[n];
+//            // this describes the movements in the last iteration
+//            Point2D.Double[] oldmove = scenario.lastMovement();
+//
+//            for (int i = 0; i < n; i++) {
+//                newp[i] = new Point2D.Double(oldp[i].x, oldp[i].y);
+//
+//                // move to or from closest two neighbors
+//                Point2D.Double[] closest = getTwoClosest(oldp[i], scenario.neighbors(oldp[i]));
+//
+//                if (closest.length > 0) {
+//
+//                    // if too close to nearest neighbor, move away
+//                    if (oldp[i].distance(closest[0]) < BOUNDARY_BUFFER) {
+//                        newp[i].x += (newp[i].x - closest[0].x) * MOVE_TO_NBR_FACTOR;
+//                        newp[i].y += (newp[i].y - closest[0].y) * MOVE_TO_NBR_FACTOR;
+//                    } else {
+//                        // otherwise copy movements
+//                        for (int j = 0; j < closest.length; j++) {
+//                            // find index of this point to retrieve prior move
+//                            int index = -1;
+//                            for (int k = 0; k < n; k++)
+//                                if (oldp[k] == closest[j]) {
+//                                    index = k;
+//                                    break;
+//                                }
+//
+//                            // set the new move
+//                            if (index != -1) {
+//                                newp[i].x += oldmove[index].x * COPY_MOVEMENT_FACTOR;
+//                                newp[i].y += oldmove[index].y * COPY_MOVEMENT_FACTOR;
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                // don't let point move outside the boundary
+//                keepPointInPolygon(newp[i], scenario.getDomain());
+//
+//                // if end up too close to the boundary, move away from the closest boundary point
+//                Point2D.Double boundaryPt = PolygonUtils.closestPointOnPolygon(newp[i], scenario.getDomain());
+//                double dist = newp[i].distance(boundaryPt);
+//                if (dist < 1e-6) {
+//                    //System.out.println("zero dist...");
+//                } else if (dist < BOUNDARY_BUFFER) {
+//                    double moveFactor = (BOUNDARY_BUFFER - dist) / dist * (1 + .1 * Math.random());
+//                    newp[i].x += (newp[i].x - boundaryPt.x) * moveFactor;
+//                    newp[i].y += (newp[i].y - boundaryPt.y) * moveFactor;
+//                }
+//
+//                // don't let point move outside the boundary
+//                keepPointInPolygon(newp[i], scenario.getDomain());
+//            }
+//
+//            return newp;
+//        }
+//    },
 
-        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) {
-            // this is the set of points in the previous iteration
-            Point2D.Double[] oldp = scenario.getPoints();
-            // this is the number of points
-            int n = oldp.length;
-            // here we initialize a new array for the new locations of the points
-            Point2D.Double[] newp = new Point2D.Double[n];
-            // this describes the movements in the last iteration
-            Point2D.Double[] oldmove = scenario.getLastMovement();
-            
-            for (int i = 0; i < n; i++) {
-                newp[i] = new Point2D.Double(oldp[i].x, oldp[i].y);
-
-                // move to or from closest two neighbors
-                Point2D.Double[] closest = getTwoClosest(oldp[i], scenario.pointsAdjacentTo(oldp[i]));
-
-                if (closest.length > 0) {
-
-                    // if too closest to nearest neighbor, move away
-                    if (oldp[i].distance(closest[0]) < BOUNDARY_BUFFER) {
-                        newp[i].x += (newp[i].x - closest[0].x) * MOVE_TO_NBR_FACTOR;
-                        newp[i].y += (newp[i].y - closest[0].y) * MOVE_TO_NBR_FACTOR;
-                    } else {
-                        // otherwise copy movements
-                        for (int j = 0; j < closest.length; j++) {
-                            // find index of this point to retrieve prior move
-                            int index = -1;
-                            for (int k = 0; k < n; k++)
-                                if (oldp[k] == closest[j]) {
-                                    index = k;
-                                    break;
-                                }
-
-                            // set the new move
-                            if (index != -1) {
-                                newp[i].x += oldmove[index].x * COPY_MOVEMENT_FACTOR;
-                                newp[i].y += oldmove[index].y * COPY_MOVEMENT_FACTOR;
-                            }
-                        }
-                    }
-                }
-
-                // don't let point move outside the boundary
-                keepPointInPolygon(newp[i], scenario.getBoundaryPolygon());
-
-                // if end up too close to the boundary, move away from the closest boundary point
-                Point2D.Double boundaryPt = PolygonUtils.closestPointOnPolygon(newp[i], scenario.getBoundaryPolygon());
-                double dist = newp[i].distance(boundaryPt);
-                if (dist < 1e-6) {
-                    System.out.println("zero dist...");
-                } else if (dist < BOUNDARY_BUFFER) {
-                    double moveFactor = (BOUNDARY_BUFFER - dist) / dist * (1 + .1 * Math.random());
-                    newp[i].x += (newp[i].x - boundaryPt.x) * moveFactor;
-                    newp[i].y += (newp[i].y - boundaryPt.y) * moveFactor;
-                }
-
-                // don't let point move outside the boundary
-                keepPointInPolygon(newp[i], scenario.getBoundaryPolygon());
-            }
-
-            return newp;
-        }
+    /** Test combo algorithm */
+    Test_Combo() {
+        @Override public String toString() { return "Default TO-LARGEST, first three WEIGHTED"; }
+        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) { return TEST1.getNewPositions(scenario); }
     };
 
-
+    static DistributionAlgorithm TEST1 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area){
+        {
+            addAlternateAlgorithm(Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, new int[] {0,1,2});
+        }
+    };
 
 
     //

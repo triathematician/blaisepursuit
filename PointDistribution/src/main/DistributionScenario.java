@@ -9,11 +9,15 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
+import javax.swing.event.ChangeListener;
 import org.bm.blaise.scio.algorithm.PolygonIntersectionUtils;
 import org.bm.blaise.scio.algorithm.PolygonUtils;
 import org.bm.blaise.scio.algorithm.voronoi.VoronoiFrontier;
+import util.ChangeBroadcaster;
+import util.DefaultChangeBroadcaster;
 
 /**
  * Parameters and computation for the "point-packing scenario", in particular manages
@@ -24,7 +28,17 @@ import org.bm.blaise.scio.algorithm.voronoi.VoronoiFrontier;
  *
  * @author Elisha Peterson
  */
-public class DistributionScenario implements DistributionScenarioInterface {
+public class DistributionScenario implements DistributionScenarioInterface,
+        ChangeBroadcaster {
+
+    /** Used to keep track of change listeners. */
+    protected DefaultChangeBroadcaster changer = new DefaultChangeBroadcaster(this);
+
+    public void addChangeListener(ChangeListener l) { changer.addChangeListener(l); }
+    public void removeChangeListener(ChangeListener l) { changer.removeChangeListener(l); }
+
+    /** Notify interested listeners of an (unspecified) change in the plottable. */
+    public void fireStateChanged() { changer.fireStateChanged(); }
 
     //
     // VARIABLES - SETUP
@@ -44,11 +58,11 @@ public class DistributionScenario implements DistributionScenarioInterface {
     /** Stores the computed Voronoi tesselation, with adjacencies, etc. */
     transient VoronoiFrontier voronoi;
     /** Stores polygons adjacent to points. */
-    transient HashMap<Point2D.Double, Point2D.Double[]> polygonMap;
+    transient LinkedHashMap<Point2D.Double, Point2D.Double[]> polygonMap;
     /** Stores the areas "owned" by various points in the scenario; maintained in same order as the points. */
-    transient HashMap<Point2D.Double, Double> areas;
+    transient LinkedHashMap<Point2D.Double, Double> areas;
     /** Stores adjacencies among points in the scenario. */
-    transient HashMap<Point2D.Double, Set<Point2D.Double>> adjacencyMap;
+    transient LinkedHashMap<Point2D.Double, Set<Point2D.Double>> adjacencyMap;
     /** Describes those points that are adjacent to boundary. */
     transient HashSet<Point2D.Double> boundaryPoints;
 
@@ -90,20 +104,20 @@ public class DistributionScenario implements DistributionScenarioInterface {
     // GETTERS & SETTERS
     //
 
-    public Point2D.Double[] getBoundaryPolygon() {
+    public Point2D.Double[] getDomain() {
         return polygon;
     }
 
-    public void setBoundaryPolygon(Point2D.Double[] polygon) {
+    public void setDomain(Point2D.Double[] polygon) {
         this.polygon = polygon;
         recompute();
     }
 
-    public Point2D.Double getBoundaryPolygon(int i) {
+    public Point2D.Double getDomain(int i) {
         return polygon[i];
     }
 
-    public void setBoundaryPolygon(int i, Point2D.Double p) {
+    public void setDomain(int i, Point2D.Double p) {
         polygon[i] = p;
         recompute();
     }
@@ -132,47 +146,47 @@ public class DistributionScenario implements DistributionScenarioInterface {
         recompute();
     }
 
-    public Point2D.Double[] getLastMovement() {
-        return movement;
-    }
-
-    public Point2D.Double getLastMovement(int i) {
-        return movement[i];
-    }
-
-    public double getAreaAverage() {
-        return areaAverage;
-    }
-
-    public double getAreaMaxDifference() {
-        return ellInfinity;
-    }
-
-    public double getAreaSumDifference() {
-        return ellOne;
-    }
-
-    public double getAreaSumSquareDifference() {
-        return ellTwo;
-    }
-
     //
     // INTERFACE METHODS
     //
 
-    public Double getArea(Point2D.Double point) {
+    public Point2D.Double[] lastMovement() {
+        return movement;
+    }
+
+    public Point2D.Double lastMovement(int i) {
+        return movement[i];
+    }
+
+    public double meanArea() {
+        return areaAverage;
+    }
+
+    public double maxAreaDeviation() {
+        return ellInfinity;
+    }
+
+    public double sumDeviation() {
+        return ellOne;
+    }
+
+    public double sumSquaredDeviation() {
+        return ellTwo;
+    }
+
+    public Double cellArea(Point2D.Double point) {
         return areas.get(point);
     }
 
-    public Point2D.Double[] getNearestPolygon(Point2D.Double point) {
+    public Point2D.Double[] cellBoundary(Point2D.Double point) {
         return polygonMap.get(point);
     }
 
-    public Set<Point2D.Double> pointsAdjacentTo(Point2D.Double point) {
+    public Set<Point2D.Double> neighbors(Point2D.Double point) {
         return adjacencyMap.get(point);
     }
 
-    public boolean isAdjacentToBoundary(Point2D.Double point) {
+    public boolean isBoundaryPoint(Point2D.Double point) {
         return boundaryPoints.contains(point);
     }
 
@@ -198,9 +212,9 @@ public class DistributionScenario implements DistributionScenarioInterface {
 
             // create the polygon map and compute the areas
             if (polygonMap == null) {
-                polygonMap = new HashMap<Point2D.Double, Point2D.Double[]>();
-                areas = new HashMap<Point2D.Double, Double>();
-                adjacencyMap = new HashMap<Point2D.Double, Set<Point2D.Double>>();
+                polygonMap = new LinkedHashMap<Point2D.Double, Point2D.Double[]>();
+                areas = new LinkedHashMap<Point2D.Double, Double>();
+                adjacencyMap = new LinkedHashMap<Point2D.Double, Set<Point2D.Double>>();
                 boundaryPoints = new HashSet<Point2D.Double>();
             } else {
                 polygonMap.clear();
@@ -213,7 +227,7 @@ public class DistributionScenario implements DistributionScenarioInterface {
             double totalArea = 0.0;
             double curArea;
             for (Point2D.Double p : points) {
-                Point2D.Double[] ptPoly = voronoi.getPolygonMap().get(p).getVerticesAsArray();
+                Point2D.Double[] ptPoly = voronoi.getPolygonMap().get(p).getVertices();
                 Point2D.Double[] pClip = PolygonIntersectionUtils.intersectionOfConvexPolygons(ptPoly, polygon);
                 if (pClip != ptPoly)
                     boundaryPoints.add(p);
@@ -251,5 +265,6 @@ public class DistributionScenario implements DistributionScenarioInterface {
             computing = false;
         }
         computing = false;
+        fireStateChanged();
     }
 }
