@@ -79,13 +79,25 @@ public class DistributionScenario implements DistributionScenarioInterface,
     // CONSTRUCTOR
     //
 
+    final static Point2D.Double[] DEFAULT_POLY = new Point2D.Double[]{ new Point2(.25,0), new Point2(1.25,0), new Point2(2,1), new Point2(0,1.25) };
+
     public DistributionScenario() {
-        this (new Point2D.Double[]{ new Point2(.25,0), new Point2(1.25,0), new Point2(2,1), new Point2(0,1.25) },
+        this (DEFAULT_POLY,
             new Point2D.Double[]{ 
                 new Point2(.25,.75), new Point2(.5,.25), new Point2(1.5,.75), new Point2(1, .75),
                 new Point2(.6,.7), new Point2(.8, .9), new Point2(1,.5), new Point2(1.1, .25),
                 new Point2(1.2,1)
         });
+    }
+
+    /** Construct scenario with polygon and specified number of points in the polygon */
+    public DistributionScenario(Point2D.Double[] polygon, int nPts) {
+        this.polygon = polygon;
+        randomizeLocations(nPts);
+        this.movement = new Point2D.Double[points.length];
+        for (int i = 0; i < points.length; i++)
+            movement[i] = new Point2D.Double();
+        recompute();
     }
 
     /** Constructs the scenario. */
@@ -99,6 +111,35 @@ public class DistributionScenario implements DistributionScenarioInterface,
     }
 
     @Override public String toString() { return "Point distribution scenario"; }
+
+    /**
+     * Randomizes locations of points in the polygon
+     * @param n number of points
+     */
+    void randomizeLocations(int n) {
+        double minX = Double.POSITIVE_INFINITY, minY = Double.POSITIVE_INFINITY;
+        double maxX = Double.NEGATIVE_INFINITY, maxY = Double.NEGATIVE_INFINITY;
+        for (Point2D.Double p : polygon) {
+            minX = Math.min(minX, p.x);
+            minY = Math.min(minY, p.y);
+            maxX = Math.max(maxX, p.x);
+            maxY = Math.max(maxY, p.y);
+        }
+
+        Point2D.Double[] pts = new Point2D.Double[n];
+        for (int i = 0; i < pts.length; i++) {
+            pts[i] = null;
+            while (pts[i] == null) {
+                pts[i] = new Point2D.Double(
+                        minX + Math.random() * (maxX - minX),
+                        minY + Math.random() * (maxY - minY)
+                        );
+                if (!PolygonUtils.inPolygon(pts[i], getDomain()))
+                    pts[i] = null;
+            }
+        }
+        setPoints(pts);
+    }
 
     //
     // GETTERS & SETTERS
@@ -127,7 +168,7 @@ public class DistributionScenario implements DistributionScenarioInterface,
     }
 
     public void setPoints(Point2D.Double[] points) {
-        if (points.length == this.points.length)
+        if (this.points != null && points.length == this.points.length)
             for (int i = 0; i < points.length; i++)
                 movement[i] = new Point2D.Double(points[i].x - this.points[i].x, points[i].y - this.points[i].y);
         else

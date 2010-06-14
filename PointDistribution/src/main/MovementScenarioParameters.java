@@ -15,7 +15,7 @@ public class MovementScenarioParameters {
     // Parameters for weighted area algorithm
     //
 
-    public static double TO_NEIGHBOR_BY_WEIGHTED_AREA_FACTOR = .5;
+    public static double TO_NEIGHBOR_BY_WEIGHTED_AREA_FACTOR = .4;
 
     public double getToNeighborByWeightedAreaFactor() {
         return TO_NEIGHBOR_BY_WEIGHTED_AREA_FACTOR;

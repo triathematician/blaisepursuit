@@ -16,109 +16,128 @@ import org.bm.blaise.scio.algorithm.PolygonUtils;
  */
 public class DistributionStats {
 
-    /** Compile average scores across iterations i1 through i2 using specified algorithm */
-    public static void printStats(DistributionScenarioInterface ds, DistributionAlgorithm a, int i1, int i2) {
-        if (i1 > i2)
-            printStats(ds, a, i2, i1);
-        else
-            for (int i = 0; i <= i2; i++) {
-                if (i >= i1 && i <= i2) {
-                    System.out.println("SCORE " + i + ": " + DistributionMetrics.teamScore(ds));
-                }
+    //
+    // HELPFUL MULTI-SAMPLING ALGORITHMS
+    //
+
+    /**
+     * Uses the specified algorithm to compile statistics on TEAM scores.
+     * @param polygon the polygon to use in the scenario
+     * @param n number of points in the scenario (will be randomized every time)
+     * @param algorithm the algorithm to use for the stats
+     * @param nSamples number of times to repeat the scenario simulation
+     * @param nSteps number of steps to run each scenario (will run nSteps times, producing nSteps+1 data points)
+     * @return a double array whose (i,j) entry represents the i'th sample and j'th step
+     */
+    public static double[][] compileTeamScores(Point2D.Double[] polygon, int n, DistributionAlgorithm a, int nSamples, int nSteps) {
+        double[][] result = new double[nSamples][nSteps+1];
+        DistributionScenario ds = new DistributionScenario(polygon, n);
+        double target = ds.meanArea();
+        for (int i = 0; i < nSamples; i++) {
+            ds.randomizeLocations(n);
+            for (int j = 0; j <= nSteps; j++) {
+                result[i][j] = DistributionMetrics.teamScore(ds, target);
                 ds.setPoints(a.getNewPositions(ds));
             }
-    }
-
-    /** Averages score across several iterations */
-    public static double[] randomizedStats(DistributionScenarioInterface ds, int nPts, DistributionAlgorithm a, int nRep, int stepSample) {
-        double[] result = new double[nRep];
-        for (int i = 0; i < result.length; i++) {
-            randomize(ds, nPts);
-            for (int step = 0; step <= stepSample; step++) ds.setPoints(a.getNewPositions(ds));
-            result[i] = DistributionMetrics.teamScore(ds);
         }
         return result;
     }
 
-    /** Computes min/max/avg/var/dev of a list of doubles. */
-    public static double[] stats(double[] list) {
-        double min = Double.POSITIVE_INFINITY;
-        double max = Double.NEGATIVE_INFINITY;
-        double avg = 0.0;
-        for (double d : list) {
-            min = Math.min(min, d);
-            max = Math.max(max, d);
-            avg += d;
-        }
-        avg /= list.length;
-
-        double var = 0.0;
-        for (double d : list)
-            var += (d - avg)*(d - avg);
-        var /= list.length;
-
-        return new double[] { min, max, avg, var, Math.sqrt(var) };
-    }
-
-    /** Scores all available algorithms */
-    public static void scoreAlgorithms(DistributionScenarioInterface ds, int nPts, int nRep, int stepSample) {
-        for (DistributionAlgorithm da : Algorithms.values())
-            try {
-                double[] result = stats(randomizedStats(ds, nPts, da, nRep, stepSample));
-                System.out.println("Algorithm " + da + ": average score = " + result[2] + " +/- " + result[4]);
-            } catch (Exception ex) {}
-    }
-
-    /** Measure cooperative score of a subset of points for nSteps steps */
-    public static void coopScore(DistributionScenarioInterface ds, DistributionAlgorithm a, int nSteps, List<Integer> subsetIndices) {
-        Point2D.Double[] subset = new Point2D.Double[ds.getPoints().length - subsetIndices.size()];
-        int j = 0;
-        for (int i = 0; i < ds.getPoints().length; i++) if (!subsetIndices.contains(i)) { subset[j] = ds.getPoints(i); j++; }
-
-        DistributionScenario ds2 = new DistributionScenario(ds.getDomain(), subset);
-        for (int i = 0; i <= nSteps; i++) {
-            if (i < 5 || i%10==0 || i == nSteps) {
-                double t1 = DistributionMetrics.teamScore(ds);
-                double t2 = DistributionMetrics.subScore(ds, subsetIndices);
-                double t3 = DistributionMetrics.teamScore(ds2, ds.meanArea());
-                System.out.println(String.format("SCORES @ STEP %d: (%.2f,%.2f,%.2f) => (sc,ac) = (%.2f,%.2f) ; tc = %.2f",
-                        i, t1, t2, t3, t1-t2, t2-t3, t1-t3));
+    /**
+     * Uses the specified algorithm to compile statistics on a SUBSET of player scores.
+     * @param polygon the polygon to use in the scenario
+     * @param n number of points in the scenario (will be randomized every time)
+     * @param subset index of player to sample
+     * @param algorithm the algorithm to use for the stats
+     * @param nSamples number of times to repeat the scenario simulation
+     * @param nSteps number of steps to run each scenario (will run nSteps times, producing nSteps+1 data points)
+     * @return a double array whose (i,j) entry represents the i'th sample and j'th step
+     */
+    public static double[][] compileSubsetScores(Point2D.Double[] polygon, int n, List<Integer> subset, DistributionAlgorithm a, int nSamples, int nSteps) {
+        double[][] result = new double[nSamples][nSteps+1];
+        DistributionScenario ds = new DistributionScenario(polygon, n);
+        double target = ds.meanArea();
+        for (int i = 0; i < nSamples; i++) {
+            ds.randomizeLocations(nSteps);
+            for (int j = 0; j <= nSteps; j++) {
+                result[i][j] = DistributionMetrics.sumScore(ds, subset, target);
+                ds.setPoints(a.getNewPositions(ds));
             }
-            ds.setPoints(a.getNewPositions(ds));
-            ds2.setPoints(a.getNewPositions(ds2));
         }
+        return result;
     }
 
+    /**
+     * Pulls out subset of points specified by COMPLEMENT of given indices.
+     * @param points the points
+     * @param complement the indices to REMOVE
+     * @return array of points not containing those of given indices
+     */
+    static Point2D.Double[] deriveComplement(Point2D.Double[] points, List<Integer> complement) {
+        int nPts = points.length, n = nPts - complement.size();
+        Point2D.Double[] result = new Point2D.Double[n];
+        int i2 = 0;
+        for (int i1 = 0; i1 < nPts; i1++)
+            if (!complement.contains(i1)) {
+                result[i2] = points[i1];
+                i2++;
+            }
+        return result;
+    }
+
+    /**
+     * Uses the specified algorithm to compile statistics on a SUBSET's COOPERATION METRIC.
+     * The algorithm is used in parallel from a random set of starting positions with n points.
+     * @param polygon the polygon to use in the scenario
+     * @param n number of points in the scenario (will be randomized every time)
+     * @param algorithm the algorithm to use for the stats
+     * @param nSamples number of times to repeat the scenario simulation
+     * @param nSteps number of steps to run each scenario (will run nSteps times, producing nSteps+1 data points)
+     * @param subset index of player to sample
+     * @return a double array whose (i,j) entry represents the coop scores 
+     *      { team score, complement-valued score, complement-participate score, selfish score, altruistic score }
+     *      in the i'th sample and j'th step
+     */
+    public static double[][][] compileCooperationScores(Point2D.Double[] polygon, int n, List<Integer> subset, DistributionAlgorithm a, int nSamples, int nSteps) {
+        double[][][] result = new double[nSamples][nSteps+1][5];
+        DistributionScenario ds = new DistributionScenario(polygon, n);
+        DistributionScenario ds2 = new DistributionScenario(polygon, n-subset.size());
+        for (int i = 0; i < nSamples; i++) {
+            ds.randomizeLocations(n);
+            ds2.setPoints(deriveComplement(ds.getPoints(), subset));
+            for (int j = 0; j <= nSteps; j++) {
+                result[i][j] = DistributionMetrics.cooperationScore(ds, ds2, subset, true);
+                ds.setPoints(a.getNewPositions(ds));
+                ds2.setPoints(a.getNewPositions(ds2));
+            }
+        }
+        return result;
+    }
+
+    //
+    // RUNNING
+    //
 
     public static void main(String[] args) {
-        DistributionScenario ds = new DistributionScenario(); randomize(ds, 15);
-        Point2D.Double[] initial = ds.points;
-        System.out.println("=== LARGEST (1) ===");
-        coopScore(ds, Algorithms.Go_to_Neighbor_with_Largest_Area, 30, Arrays.asList(0,1,2));
-        System.out.println("=== WEIGHTED (1) ===");
-        ds.setPoints(initial);
-        coopScore(ds, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 30, Arrays.asList(0,1,2));
-        System.out.println("=== COMBO (1 - rogue) ===");
-        ds.setPoints(initial);
-        coopScore(ds, Algorithms.Test_Combo, 30, Arrays.asList(0,1,2));
-        System.out.println("=== COMBO (1 - team) ===");
-        ds.setPoints(initial);
-        coopScore(ds, Algorithms.Test_Combo, 30, Arrays.asList(3,4,5));
-//        scoreAlgorithms(ds, 20, 40, 40);
-    }
-
-
-    static void randomize(DistributionScenarioInterface sc, int n) {
-        // sets up with specified number of points, randomly generated inside the polygon and the window (-10,-10) to (10,10)
-        Point2D.Double[] pts = new Point2D.Double[n];
-        for (int i = 0; i < pts.length; i++) {
-            pts[i] = null;
-            while (pts[i] == null) {
-                pts[i] = new Point2D.Double(20*Math.random()-10, 20*Math.random()-10);
-                if (!PolygonUtils.inPolygon(pts[i], sc.getDomain()))
-                    pts[i] = null;
-            }
-        }
-        sc.setPoints(pts);
+        Point2D.Double[] poly = DistributionScenario.DEFAULT_POLY;
+        int NPTS = 50;
+        List<Integer> SUBSET = Arrays.asList(10);
+        int NRUNS = 300;
+        int NSTEPS = 200;
+        double[][][] result = DistributionStats.compileCooperationScores(poly, NPTS, SUBSET, Algorithms.TEST01, NRUNS, NSTEPS);
+        double[][][] stats3 = new double[5][NSTEPS][8];
+        for (int i = 0; i < 5; i++)
+            for (int j = 0; j < NSTEPS; j++)
+                stats3[i][j] = StatUtils.stats3(result, j, i);
+        System.out.println("Stats 0 Array = team score (mean-dev, mean, mean+dev:");
+        StatUtils.tabPrint(stats3[0]);
+        System.out.println("Stats 1 Array = complement score (mean-dev, mean, mean+dev:");
+        StatUtils.tabPrint(stats3[1]);
+        System.out.println("Stats 2 Array = complement game score (mean-dev, mean, mean+dev:");
+        StatUtils.tabPrint(stats3[2]);
+        System.out.println("Stats 3 Array = selfish score (mean-dev, mean, mean+dev:");
+        StatUtils.tabPrint(stats3[3]);
+        System.out.println("Stats 4 Array = altruistic score (mean-dev, mean, mean+dev:");
+        StatUtils.tabPrint(stats3[4]);
     }
 }

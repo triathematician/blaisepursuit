@@ -27,6 +27,13 @@ public class ComboAlgorithm implements DistributionAlgorithm {
         alternates = new HashMap<DistributionAlgorithm, int[]>();
     }
 
+    public ComboAlgorithm(DistributionAlgorithm defaultAlgorithm, DistributionAlgorithm alternate, int nAlternates) {
+        this(defaultAlgorithm);
+        int[] alt = new int[nAlternates];
+        for (int i = 0; i < alt.length; i++) alt[i] = i;
+        addAlternateAlgorithm(alternate, alt);
+    }
+
     public void addAlternateAlgorithm(DistributionAlgorithm key, int[] values) {
         if (alternates.containsKey(key)) {
             List<Integer> newvalList = new ArrayList<Integer>();

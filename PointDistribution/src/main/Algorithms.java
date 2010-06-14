@@ -5,7 +5,6 @@
 package main;
 
 import java.awt.geom.Point2D;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -58,6 +57,48 @@ public enum Algorithms
                     newp[i] = new Point2D.Double(
                             oldp[i].x + MAX_STEP_DISTANCE * unitChange.x,
                             oldp[i].y + MAX_STEP_DISTANCE * unitChange.y);
+                }
+            }
+
+            // don't let points move outside the boundary
+            keepPointsInPolygon(newp, scenario.getDomain());
+
+            return newp;
+        }
+    },
+
+    Go_to_Neighbor_with_Largest_Area2() {
+        @Override public String toString() { return "Go to neighbor with largest area (cap movement by distance)"; }
+
+        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) {
+            // these are the points in the old scenario
+            final Point2D.Double[] oldp = scenario.getPoints();
+            // this is the number of points
+            int n = oldp.length;
+            // here we initialize a new array for the new locations of the points
+            Point2D.Double[] newp = new Point2D.Double[n];
+
+            for (int i = 0; i < n; i++) {
+                // here we iterate over all the neighbors of the current point to find the one with maximum area
+                Point2D.Double bestNbr = null;
+                double bestArea = 0.0;
+                for (Point2D.Double nbr : scenario.neighbors(oldp[i])) {
+                    double area = scenario.cellArea(nbr);
+                    if (area > bestArea) {
+                        bestNbr = nbr;
+                        bestArea = area;
+                    }
+                }
+                // don't move if already have largest area
+                if (scenario.cellArea(oldp[i]) > bestArea)
+                    newp[i] = (Point2D.Double) oldp[i].clone();
+                else {
+                    // this is a unit vector pointing from oldPoints[i] to bestNbr
+                    Point2D.Double change = new Point2D.Double(bestNbr.x - oldp[i].x, bestNbr.y - oldp[i].y);
+                    // this is the new location
+                    newp[i] = new Point2D.Double(
+                            oldp[i].x + MovementScenarioParameters.TO_NEIGHBOR_BY_WEIGHTED_AREA_FACTOR * change.x,
+                            oldp[i].y + MovementScenarioParameters.TO_NEIGHBOR_BY_WEIGHTED_AREA_FACTOR * change.y);
                 }
             }
 
@@ -314,16 +355,67 @@ public enum Algorithms
 //    },
 
     /** Test combo algorithm */
-    Test_Combo() {
+    Test_Combo_1() {
+        @Override public String toString() { return "Default TO-LARGEST, first WEIGHTED"; }
+        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) { return TEST01.getNewPositions(scenario); }
+    },
+    /** Test combo algorithm */
+    Test_Combo_2() {
+        @Override public String toString() { return "Default TO-LARGEST, first two WEIGHTED"; }
+        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) { return TEST02.getNewPositions(scenario); }
+    },
+
+    /** Test combo algorithm */
+    Test_Combo_3() {
         @Override public String toString() { return "Default TO-LARGEST, first three WEIGHTED"; }
-        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) { return TEST1.getNewPositions(scenario); }
+        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) { return TEST03.getNewPositions(scenario); }
+    },
+
+    /** Test combo algorithm */
+    Test_Combo_5() {
+        @Override public String toString() { return "Default TO-LARGEST, first five WEIGHTED"; }
+        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) { return TEST05.getNewPositions(scenario); }
+    },
+
+    /** Test combo algorithm */
+    Test_Combo_10() {
+        @Override public String toString() { return "Default TO-LARGEST, first ten WEIGHTED"; }
+        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) { return TEST10.getNewPositions(scenario); }
+    },
+
+    /** Test combo algorithm */
+    Test_Combo_15() {
+        @Override public String toString() { return "Default TO-LARGEST, first fifteen WEIGHTED"; }
+        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) { return TEST15.getNewPositions(scenario); }
+    },
+
+    /** Test combo algorithm */
+    Test_Combo_17() {
+        @Override public String toString() { return "Default TO-LARGEST, first seventeen WEIGHTED"; }
+        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) { return TEST17.getNewPositions(scenario); }
+    },
+
+    /** Test combo algorithm */
+    Test_Combo_18() {
+        @Override public String toString() { return "Default TO-LARGEST, first eighteen WEIGHTED"; }
+        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) { return TEST18.getNewPositions(scenario); }
+    },
+
+    /** Test combo algorithm */
+    Test_Combo_19() {
+        @Override public String toString() { return "Default TO-LARGEST, first nineteen WEIGHTED"; }
+        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) { return TEST19.getNewPositions(scenario); }
     };
 
-    static DistributionAlgorithm TEST1 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area){
-        {
-            addAlternateAlgorithm(Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, new int[] {0,1,2});
-        }
-    };
+    static DistributionAlgorithm TEST01 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 1);
+    static DistributionAlgorithm TEST02 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 2);
+    static DistributionAlgorithm TEST03 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 3);
+    static DistributionAlgorithm TEST05 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 5);
+    static DistributionAlgorithm TEST10 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 10);
+    static DistributionAlgorithm TEST15 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 15);
+    static DistributionAlgorithm TEST17 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 17);
+    static DistributionAlgorithm TEST18 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 18);
+    static DistributionAlgorithm TEST19 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 19);
 
 
     //
