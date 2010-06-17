@@ -27,6 +27,13 @@ public class ComboAlgorithm implements DistributionAlgorithm {
         alternates = new HashMap<DistributionAlgorithm, int[]>();
     }
 
+    /**
+     * Sets up an algorithm in which the first nAlternates points use the alternate algorithm,
+     * and the remainder of the team uses the default algorithm.
+     * @param defaultAlgorithm
+     * @param alternate
+     * @param nAlternates
+     */
     public ComboAlgorithm(DistributionAlgorithm defaultAlgorithm, DistributionAlgorithm alternate, int nAlternates) {
         this(defaultAlgorithm);
         int[] alt = new int[nAlternates];

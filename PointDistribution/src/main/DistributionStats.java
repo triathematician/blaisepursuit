@@ -6,9 +6,10 @@
 package main;
 
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.bm.blaise.scio.algorithm.PolygonUtils;
+import java.util.Map.Entry;
 
 /**
  *
@@ -67,6 +68,40 @@ public class DistributionStats {
         return result;
     }
 
+    /** @return map of old positions */
+    static int[] removeReindex(int n, List<Integer> complement) {
+        int[] result = new int[n-complement.size()];
+        int cur = 0;
+        for (int i = 0; i < n; i++)
+            if (!complement.contains(i))
+                result[cur++] = i;
+        return result;
+    }
+
+    /**
+     * Adjusts old list of integers to new list of integers,
+     * using provided list describing where old values come from
+     * @param old old list of indices to convert
+     * @param map array describing old indices mapping to new indices (position is new, entry is old)
+     * @return new list of indices
+     */
+    static int[] reindex(int[] old, int[] map) {
+        ArrayList<Integer> result1 = new ArrayList<Integer>();
+        for (int i = 0; i < old.length; i++) {
+            // if entry old[i] is an entry in map array, convert it
+            for (int pos = 0; pos < map.length; pos++)
+                if (old[i] == map[pos]) {
+                    result1.add(pos);
+                    break;
+                }
+        }
+        // now copy to appropriate return type
+        int[] result = new int[result1.size()];
+        for (int i = 0; i < result.length; i++)
+            result[i] = result1.get(i);
+        return result;
+    }
+
     /**
      * Pulls out subset of points specified by COMPLEMENT of given indices.
      * @param points the points
@@ -74,14 +109,26 @@ public class DistributionStats {
      * @return array of points not containing those of given indices
      */
     static Point2D.Double[] deriveComplement(Point2D.Double[] points, List<Integer> complement) {
-        int nPts = points.length, n = nPts - complement.size();
-        Point2D.Double[] result = new Point2D.Double[n];
-        int i2 = 0;
-        for (int i1 = 0; i1 < nPts; i1++)
-            if (!complement.contains(i1)) {
-                result[i2] = points[i1];
-                i2++;
-            }
+        Point2D.Double[] result = new Point2D.Double[points.length - complement.size()];
+        int[] reindex = removeReindex(points.length, complement);
+        for (int i = 0; i < reindex.length; i++)
+            result[i] = points[reindex[i]];
+        return result;
+    }
+
+    /**
+     * Creates an algorithm for use with a subset of players and an existing algorithm.
+     * @param a the base algorithm
+     * @param n original # of players
+     * @param subset the players to "remove" in the resulting algorithm
+     * @return
+     */
+    static ComboAlgorithm deriveComplement(ComboAlgorithm a, int n, List<Integer> subset) {
+        ComboAlgorithm result = new ComboAlgorithm(a.defaultAlgorithm);
+        int[] reindex = removeReindex(n, subset);
+        for (Entry<DistributionAlgorithm,int[]> en : a.alternates.entrySet()) {
+            result.addAlternateAlgorithm(en.getKey(), reindex(en.getValue(), reindex));
+        }
         return result;
     }
 
@@ -102,13 +149,15 @@ public class DistributionStats {
         double[][][] result = new double[nSamples][nSteps+1][5];
         DistributionScenario ds = new DistributionScenario(polygon, n);
         DistributionScenario ds2 = new DistributionScenario(polygon, n-subset.size());
+        DistributionAlgorithm a2 = a instanceof ComboAlgorithm ? deriveComplement((ComboAlgorithm) a, n, subset) : a;
         for (int i = 0; i < nSamples; i++) {
+            if (i%10==0) System.out.println("Running sample " + i + "/" + nSamples);
             ds.randomizeLocations(n);
             ds2.setPoints(deriveComplement(ds.getPoints(), subset));
             for (int j = 0; j <= nSteps; j++) {
                 result[i][j] = DistributionMetrics.cooperationScore(ds, ds2, subset, true);
                 ds.setPoints(a.getNewPositions(ds));
-                ds2.setPoints(a.getNewPositions(ds2));
+                ds2.setPoints(a2.getNewPositions(ds2));
             }
         }
         return result;
@@ -120,24 +169,28 @@ public class DistributionStats {
 
     public static void main(String[] args) {
         Point2D.Double[] poly = DistributionScenario.DEFAULT_POLY;
-        int NPTS = 50;
-        List<Integer> SUBSET = Arrays.asList(10);
-        int NRUNS = 300;
-        int NSTEPS = 200;
-        double[][][] result = DistributionStats.compileCooperationScores(poly, NPTS, SUBSET, Algorithms.TEST01, NRUNS, NSTEPS);
+        int NRUNS = 200;
+        int NSTEPS = 140;
+        int NPTS = 20; List<Integer> SUBSET = Arrays.asList(0);
+        // set up algorthm, first 1 points use alternate algorithm
+        DistributionAlgorithm ALGORITHM1 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 15);
+        // set up algorithm, first 1 points use altenrate algorithm
+        DistributionAlgorithm ALGORITHM2 = new ComboAlgorithm(Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, Algorithms.Go_to_Neighbor_with_Largest_Area, 5);
+        
+        double[][][] result = DistributionStats.compileCooperationScores(poly, NPTS, SUBSET, Algorithms.Go_to_Neighbor_with_Largest_Area, NRUNS, NSTEPS);
         double[][][] stats3 = new double[5][NSTEPS][8];
         for (int i = 0; i < 5; i++)
             for (int j = 0; j < NSTEPS; j++)
                 stats3[i][j] = StatUtils.stats3(result, j, i);
-        System.out.println("Stats 0 Array = team score (mean-dev, mean, mean+dev:");
+        System.out.println("Stats 0 Array = team score { mean - dev, mean, mean + dev, min, 10%, 50%, 90%, max }:");
         StatUtils.tabPrint(stats3[0]);
-        System.out.println("Stats 1 Array = complement score (mean-dev, mean, mean+dev:");
+        System.out.println("Stats 1 Array = complement score { mean - dev, mean, mean + dev, min, 10%, 50%, 90%, max }:");
         StatUtils.tabPrint(stats3[1]);
-        System.out.println("Stats 2 Array = complement game score (mean-dev, mean, mean+dev:");
+        System.out.println("Stats 2 Array = complement game score { mean - dev, mean, mean + dev, min, 10%, 50%, 90%, max }:");
         StatUtils.tabPrint(stats3[2]);
-        System.out.println("Stats 3 Array = selfish score (mean-dev, mean, mean+dev:");
+        System.out.println("Stats 3 Array = selfish score { mean - dev, mean, mean + dev, min, 10%, 50%, 90%, max }:");
         StatUtils.tabPrint(stats3[3]);
-        System.out.println("Stats 4 Array = altruistic score (mean-dev, mean, mean+dev:");
+        System.out.println("Stats 4 Array = altruistic score { mean - dev, mean, mean + dev, min, 10%, 50%, 90%, max }:");
         StatUtils.tabPrint(stats3[4]);
     }
 }

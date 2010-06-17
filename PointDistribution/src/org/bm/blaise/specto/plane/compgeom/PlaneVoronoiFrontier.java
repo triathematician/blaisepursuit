@@ -5,8 +5,7 @@
 
 package org.bm.blaise.specto.plane.compgeom;
 
-import coordinate.ScreenSampleDomainProvider;
-import java.awt.Color;
+import coordinate.DomainHint;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -144,7 +143,7 @@ public class PlaneVoronoiFrontier extends VPointSet<Point2D.Double>
         if (dxEntry.visible) {
             List<Point2D.Double> frontierCurve = new ArrayList<Point2D.Double>();
             for (VoronoiFrontier.FrontierArc arc : frontier) {
-                double diff = (Double) parent.requestScreenSampleDomain("y", Double.class, 1f, ScreenSampleDomainProvider.HINT_REGULAR).getSampleDiff();
+                double diff = (Double) parent.requestScreenSampleDomain("y", Double.class, 1f, DomainHint.REGULAR).getSampleDiff();
                 double ly = Math.max(yInterval.getMinimum(), arc.lowerY(curDir));
                 double uy = Math.min(yInterval.getMaximum(), arc.upperY(curDir));
                 for (double y = ly; y <= uy; y += diff)

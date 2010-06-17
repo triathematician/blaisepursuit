@@ -28,6 +28,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import org.bm.blaise.scio.algorithm.PolygonUtils;
+import primitive.style.PointLabeledStyle;
 import primitive.style.PointStyle;
 import stormtimer.BetterTimer;
 import visometry.plane.PlaneAxes;
@@ -82,7 +83,7 @@ public class PointDistributionMain extends javax.swing.JFrame
         mainPlot.add(vDomain = new VShape<Point2D.Double>(scenario.getDomain()));
         mainPlot.add(vPoints = new VPointSet<Point2D.Double>(scenario.getPoints()));
         mainPlot.add(vCells = new CellVis(scenario.polygonMap.values().toArray(new Point2D.Double[][]{})));
-        vPoints.setPointStyle(new PointStyle(PointStyle.PointShape.CROSS, 3));
+        vPoints.setPointStyle(new PointLabeledStyle(PointStyle.PointShape.CROSS, 3, -1));
         vPoints.addChangeListener(this);
         vDomain.addChangeListener(this);
 
@@ -574,16 +575,16 @@ public class PointDistributionMain extends javax.swing.JFrame
 
         if (e.getSource() == vPoints) {
             adjustingScenario = true;
-            scenario.setPoints(vPoints.getPoints());
+            scenario.setPoints(vPoints.getPoint());
             adjustingScenario = false;
         } else if (e.getSource() == vDomain) {
             adjustingScenario = true;
-            scenario.setDomain(vDomain.getPoints());
+            scenario.setDomain(vDomain.getPoint());
             adjustingScenario = false;
         } else if (e.getSource() == scenario) {
             if (!adjustingScenario) {
-                vPoints.setPoints(scenario.getPoints());
-                vDomain.setPoints(scenario.getDomain());
+                vPoints.setPoint(scenario.getPoints());
+                vDomain.setPoint(scenario.getDomain());
             }
 
             vCells.setPolys(scenario.polygonMap.values().toArray(new Point2D.Double[][]{}));

@@ -286,73 +286,73 @@ public enum Algorithms
         }
     },
     
-//    /** Boundary Zone algorithm: no knowledge of areas, just nearest neighbors */
-//    Boundary_Zone() {
-//        @Override public String toString() { return "Keep out of a boundary zone"; }
-//
-//        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) {
-//            // this is the set of points in the previous iteration
-//            Point2D.Double[] oldp = scenario.getPoints();
-//            // this is the number of points
-//            int n = oldp.length;
-//            // here we initialize a new array for the new locations of the points
-//            Point2D.Double[] newp = new Point2D.Double[n];
-//            // this describes the movements in the last iteration
-//            Point2D.Double[] oldmove = scenario.lastMovement();
-//
-//            for (int i = 0; i < n; i++) {
-//                newp[i] = new Point2D.Double(oldp[i].x, oldp[i].y);
-//
-//                // move to or from closest two neighbors
-//                Point2D.Double[] closest = getTwoClosest(oldp[i], scenario.neighbors(oldp[i]));
-//
-//                if (closest.length > 0) {
-//
-//                    // if too close to nearest neighbor, move away
-//                    if (oldp[i].distance(closest[0]) < BOUNDARY_BUFFER) {
-//                        newp[i].x += (newp[i].x - closest[0].x) * MOVE_TO_NBR_FACTOR;
-//                        newp[i].y += (newp[i].y - closest[0].y) * MOVE_TO_NBR_FACTOR;
-//                    } else {
-//                        // otherwise copy movements
-//                        for (int j = 0; j < closest.length; j++) {
-//                            // find index of this point to retrieve prior move
-//                            int index = -1;
-//                            for (int k = 0; k < n; k++)
-//                                if (oldp[k] == closest[j]) {
-//                                    index = k;
-//                                    break;
-//                                }
-//
-//                            // set the new move
-//                            if (index != -1) {
-//                                newp[i].x += oldmove[index].x * COPY_MOVEMENT_FACTOR;
-//                                newp[i].y += oldmove[index].y * COPY_MOVEMENT_FACTOR;
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                // don't let point move outside the boundary
-//                keepPointInPolygon(newp[i], scenario.getDomain());
-//
-//                // if end up too close to the boundary, move away from the closest boundary point
-//                Point2D.Double boundaryPt = PolygonUtils.closestPointOnPolygon(newp[i], scenario.getDomain());
-//                double dist = newp[i].distance(boundaryPt);
-//                if (dist < 1e-6) {
-//                    //System.out.println("zero dist...");
-//                } else if (dist < BOUNDARY_BUFFER) {
-//                    double moveFactor = (BOUNDARY_BUFFER - dist) / dist * (1 + .1 * Math.random());
-//                    newp[i].x += (newp[i].x - boundaryPt.x) * moveFactor;
-//                    newp[i].y += (newp[i].y - boundaryPt.y) * moveFactor;
-//                }
-//
-//                // don't let point move outside the boundary
-//                keepPointInPolygon(newp[i], scenario.getDomain());
-//            }
-//
-//            return newp;
-//        }
-//    },
+    /** Boundary Zone algorithm: no knowledge of areas, just nearest neighbors */
+    Boundary_Zone() {
+        @Override public String toString() { return "Keep out of a boundary zone"; }
+
+        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) {
+            // this is the set of points in the previous iteration
+            Point2D.Double[] oldp = scenario.getPoints();
+            // this is the number of points
+            int n = oldp.length;
+            // here we initialize a new array for the new locations of the points
+            Point2D.Double[] newp = new Point2D.Double[n];
+            // this describes the movements in the last iteration
+            Point2D.Double[] oldmove = scenario.lastMovement();
+
+            for (int i = 0; i < n; i++) {
+                newp[i] = new Point2D.Double(oldp[i].x, oldp[i].y);
+
+                // move to or from closest two neighbors
+                Point2D.Double[] closest = getTwoClosest(oldp[i], scenario.neighbors(oldp[i]));
+
+                if (closest.length > 0) {
+
+                    // if too close to nearest neighbor, move away
+                    if (oldp[i].distance(closest[0]) < BOUNDARY_BUFFER) {
+                        newp[i].x += (newp[i].x - closest[0].x) * MOVE_TO_NBR_FACTOR;
+                        newp[i].y += (newp[i].y - closest[0].y) * MOVE_TO_NBR_FACTOR;
+                    } else {
+                        // otherwise copy movements
+                        for (int j = 0; j < closest.length; j++) {
+                            // find index of this point to retrieve prior move
+                            int index = -1;
+                            for (int k = 0; k < n; k++)
+                                if (oldp[k] == closest[j]) {
+                                    index = k;
+                                    break;
+                                }
+
+                            // set the new move
+                            if (index != -1) {
+                                newp[i].x += oldmove[index].x * COPY_MOVEMENT_FACTOR;
+                                newp[i].y += oldmove[index].y * COPY_MOVEMENT_FACTOR;
+                            }
+                        }
+                    }
+                }
+
+                // don't let point move outside the boundary
+                keepPointInPolygon(newp[i], scenario.getDomain());
+
+                // if end up too close to the boundary, move away from the closest boundary point
+                Point2D.Double boundaryPt = PolygonUtils.closestPointOnPolygon(newp[i], scenario.getDomain());
+                double dist = newp[i].distance(boundaryPt);
+                if (dist < 1e-6) {
+                    //System.out.println("zero dist...");
+                } else if (dist < BOUNDARY_BUFFER) {
+                    double moveFactor = (BOUNDARY_BUFFER - dist) / dist * (1 + .1 * Math.random());
+                    newp[i].x += (newp[i].x - boundaryPt.x) * moveFactor;
+                    newp[i].y += (newp[i].y - boundaryPt.y) * moveFactor;
+                }
+
+                // don't let point move outside the boundary
+                keepPointInPolygon(newp[i], scenario.getDomain());
+            }
+
+            return newp;
+        }
+    },
 
     /** Test combo algorithm */
     Test_Combo_1() {
@@ -405,6 +405,12 @@ public enum Algorithms
     Test_Combo_19() {
         @Override public String toString() { return "Default TO-LARGEST, first nineteen WEIGHTED"; }
         public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) { return TEST19.getNewPositions(scenario); }
+    },
+
+    /** Test combo algorithm */
+    Test_Combo_20() {
+        @Override public String toString() { return "Default TO-LARGEST, first twenty WEIGHTED"; }
+        public Point2D.Double[] getNewPositions(DistributionScenarioInterface scenario) { return TEST20.getNewPositions(scenario); }
     };
 
     static DistributionAlgorithm TEST01 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 1);
@@ -416,6 +422,7 @@ public enum Algorithms
     static DistributionAlgorithm TEST17 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 17);
     static DistributionAlgorithm TEST18 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 18);
     static DistributionAlgorithm TEST19 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 19);
+    static DistributionAlgorithm TEST20 = new ComboAlgorithm(Algorithms.Go_to_Neighbor_with_Largest_Area, Algorithms.Go_to_Neighbors_Weighted_by_Difference_in_Areas, 20);
 
 
     //
