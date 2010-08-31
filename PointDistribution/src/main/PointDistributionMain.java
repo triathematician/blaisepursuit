@@ -28,6 +28,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import org.bm.blaise.scio.algorithm.PolygonUtils;
+import org.bm.blaise.specto.plane.compgeom.CellVis;
+import org.bm.blaise.specto.plane.compgeom.NumberLogPlottable;
+import primitive.style.Anchor;
 import primitive.style.PointLabeledStyle;
 import primitive.style.PointStyle;
 import stormtimer.BetterTimer;
@@ -81,9 +84,9 @@ public class PointDistributionMain extends javax.swing.JFrame
         scenario = new DistributionScenario();
         scenario.addChangeListener(this);
         mainPlot.add(vDomain = new VShape<Point2D.Double>(scenario.getDomain()));
-        mainPlot.add(vPoints = new VPointSet<Point2D.Double>(scenario.getPoints()));
         mainPlot.add(vCells = new CellVis(scenario.polygonMap.values().toArray(new Point2D.Double[][]{})));
-        vPoints.setPointStyle(new PointLabeledStyle(PointStyle.PointShape.CROSS, 3, -1));
+        mainPlot.add(vPoints = new VPointSet<Point2D.Double>(scenario.getPoints()));
+        vPoints.setPointStyle(new PointLabeledStyle(PointStyle.PointShape.CROSS, 3, Anchor.Center));
         vPoints.addChangeListener(this);
         vDomain.addChangeListener(this);
 

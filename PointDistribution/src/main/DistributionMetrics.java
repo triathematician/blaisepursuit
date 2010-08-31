@@ -20,7 +20,7 @@ public class DistributionMetrics {
      * @param p point within the scenario
      * @return individual score, using the mean score of the scenario
      */
-    public static double individualScore(DistributionScenarioInterface sc, Point2D.Double p) {
+    public static Double individualScore(DistributionScenarioInterface sc, Point2D.Double p) {
         return individualScore(sc, p, sc.meanArea());
     }
 
@@ -31,8 +31,10 @@ public class DistributionMetrics {
      * @param target target area for computation
      * @return individual score, using the specified target score
      */
-    public static double individualScore(DistributionScenarioInterface sc, Point2D.Double p, double target) {
-        return 1 - Math.abs(1 - sc.cellArea(p) / target);
+    public static Double individualScore(DistributionScenarioInterface sc, Point2D.Double p, Double target) {
+        Double area = sc.cellArea(p);
+        return area == null || target == null ? null
+                : 1 - Math.abs(1 - area / target);
     }
 
     /**

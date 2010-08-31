@@ -15,10 +15,10 @@ import org.bm.blaise.scio.algorithm.voronoi.VoronoiFrontier;
 import org.bm.blaise.scio.algorithm.voronoi.VoronoiUtils;
 import primitive.GraphicMesh;
 import primitive.style.MeshStyle;
-import primitive.style.PathStyle;
+import primitive.style.PathStyleShape;
 import scio.coordinate.RealInterval;
 import util.ChangeBroadcaster;
-import visometry.PointDragListener;
+import visometry.VMouseDragListener;
 import visometry.VDraggablePrimitiveEntry;
 import visometry.VPrimitiveEntry;
 import visometry.plottable.VPointSet;
@@ -36,7 +36,7 @@ import visometry.plottable.VPointSet;
  * @author Elisha Peterson
  */
 public class PlaneVoronoiFrontier extends VPointSet<Point2D.Double>
-        implements PointDragListener<Point2D.Double> {
+        implements VMouseDragListener<Point2D.Double> {
 
     /** Base object encoding the algorithm and scenario */
     VoronoiFrontier frontier;
@@ -52,7 +52,7 @@ public class PlaneVoronoiFrontier extends VPointSet<Point2D.Double>
         super(values);
         frontier = new VoronoiFrontier(Arrays.asList(values));
         frontier.setMaxDirectrix(0.0);
-        addPrimitive(dxEntry = new VDraggablePrimitiveEntry(null, new PathStyle(), this));
+        addPrimitive(dxEntry = new VDraggablePrimitiveEntry(null, new PathStyleShape(), this));
         addPrimitive(frontierEntry = new VPrimitiveEntry(null, dxEntry.style));
         addPrimitive(tessEntry = new VPrimitiveEntry(null, new MeshStyle()));
     }
@@ -68,9 +68,9 @@ public class PlaneVoronoiFrontier extends VPointSet<Point2D.Double>
     public void setDirectrix(double directrix) { if (frontier != null && directrix != frontier.getMaxDirectrix()) { frontier.setMaxDirectrix(directrix); firePlottableChanged(); } }
 
     /** @return directrix style */
-    public PathStyle getDirectrixStyle() { return (PathStyle) dxEntry.style; }
+    public PathStyleShape getDirectrixStyle() { return (PathStyleShape) dxEntry.style; }
     /** Sets new directrix style */
-    public void setDirectrixStyle(PathStyle style) { dxEntry.style = style; firePlottableStyleChanged(); }
+    public void setDirectrixStyle(PathStyleShape style) { dxEntry.style = style; firePlottableStyleChanged(); }
     /** @return directrix visibility */
     public boolean isDirectrixVisible() { return dxEntry.visible; }
     /** Sets directrix visibility */

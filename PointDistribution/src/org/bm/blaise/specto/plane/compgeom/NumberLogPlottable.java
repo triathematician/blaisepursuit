@@ -3,8 +3,9 @@
  * Created Mar 2010
  */
 
-package main;
+package org.bm.blaise.specto.plane.compgeom;
 
+import java.awt.Color;
 import java.awt.geom.GeneralPath;
 import java.util.Vector;
 import visometry.plane.PlanePathPlottable;
@@ -23,7 +24,14 @@ public class NumberLogPlottable<N extends Number> extends PlanePathPlottable {
     /** Max # of entries */
     int MAX_ENTRIES = 300;
 
-    public NumberLogPlottable() { val2 = new Vector<N>(); }
+    public NumberLogPlottable() {
+        val2 = new Vector<N>();
+    }
+
+    public NumberLogPlottable(Color color) {
+        val2 = new Vector<N>();
+        getStyle().setStrokeColor(color);
+    }
 
     /** Removes all entries from the log */
     public void clear() { val2.clear(); }

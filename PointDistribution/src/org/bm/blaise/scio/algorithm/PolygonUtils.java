@@ -6,6 +6,7 @@
 package org.bm.blaise.scio.algorithm;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
@@ -252,6 +253,19 @@ public class PolygonUtils {
 
     static Point2D.Double[] polySeg(Point2D.Double[] poly, int loc) {
         return new Point2D.Double[]{poly[loc], poly[(loc+1)%poly.length]};
+    }
+
+    /** @return bounding box of specified polygon */
+    public static Rectangle2D.Double boundingBox(Point2D.Double[] poly) {
+        if (poly.length == 0) throw new IllegalArgumentException("Polygon must have at least one point.");
+        double minX = poly[0].x, minY = poly[0].y, maxX = poly[0].x, maxY = poly[0].y;
+        for (Point2D.Double p : poly) {
+            minX = Math.min(minX, p.x);
+            minY = Math.min(minY, p.y);
+            maxX = Math.max(maxX, p.x);
+            maxY = Math.max(maxY, p.y);
+        }
+        return new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
     }
 
 //    /**

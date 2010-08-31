@@ -8,10 +8,12 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import org.bm.blaise.scio.algorithm.PointSetAlgorithms;
@@ -62,7 +64,7 @@ public class VoronoiFrontier implements Iterable<FrontierArc> {
     //
     
     /** Sets up the algorithm for provided number of points. */
-    public VoronoiFrontier(List<Point2D.Double> points) {
+    public VoronoiFrontier(List<? extends Point2D.Double> points) {
         setPoints(points);
         calculate();
     }
@@ -79,8 +81,10 @@ public class VoronoiFrontier implements Iterable<FrontierArc> {
         this.maxDirectrix = maxDirectrix;
     }
 
-    public void setPoints(List<Point2D.Double> points) {
-        this.points = points;
+    void setPoints(List<? extends Point2D.Double> points) {
+        this.points = new ArrayList<Point2D.Double>();
+        for (Point2D.Double p : points)
+            this.points.add(p);
         Collections.sort(this.points, PointSetAlgorithms.XCOMPARE);
     }
 
@@ -92,8 +96,23 @@ public class VoronoiFrontier implements Iterable<FrontierArc> {
      */
     public List<Point2D.Double[]> getAdjacencyList() {
         ArrayList<Point2D.Double[]> result = new ArrayList<Point2D.Double[]>();
-        for (FrontierVertex fv : adjacencies) {
+        for (FrontierVertex fv : adjacencies)
             result.add(new Point2D.Double[]{ fv.upperArc.point, fv.lowerArc.point });
+        return result;
+    }
+
+    /**
+     * Returns map describing adjacencies of points in resulting tesselation.
+     * The result is guaranteed to be symmetric.
+     * @return a map of adjacencies
+     */
+    public Map<Point2D.Double,Set<Point2D.Double>> getAdjacencyMap() {
+        HashMap<Point2D.Double,Set<Point2D.Double>> result = new HashMap<Point2D.Double,Set<Point2D.Double>>();
+        for (Point2D.Double p : points)
+            result.put(p, new HashSet<Point2D.Double>());
+        for (FrontierVertex fv : adjacencies) {
+            result.get(fv.upperArc.point).add(fv.lowerArc.point);
+            result.get(fv.lowerArc.point).add(fv.upperArc.point);
         }
         return result;
     }
@@ -156,6 +175,7 @@ public class VoronoiFrontier implements Iterable<FrontierArc> {
         }
     }
 
+    /** @return mapping that associates each input point to the polygon of closest values. */
     public Map<Point2D.Double, Polygon> getPolygonMap() {
         return polyMap;
     }

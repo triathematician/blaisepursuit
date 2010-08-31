@@ -5,6 +5,7 @@
 
 package main;
 
+import org.bm.blaise.specto.plane.compgeom.ColoredShapeStyle;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;

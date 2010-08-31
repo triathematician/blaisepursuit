@@ -3,7 +3,7 @@
  * Created May 21, 2010
  */
 
-package main;
+package org.bm.blaise.specto.plane.compgeom;
 
 import java.awt.geom.Point2D;
 import primitive.style.ShapeStyle;
@@ -22,10 +22,22 @@ public class CellVis extends Plottable<Point2D.Double> {
         addPrimitive(entry = new VPrimitiveEntry(polys, new ColoredShapeStyle()));
     }
 
-    public ShapeStyle getStyle() { return (ShapeStyle) entry.style; }
-    public void setStyle(ShapeStyle style) { entry.style = style; firePlottableStyleChanged(); }
+    public ShapeStyle getStyle() {
+        return (ShapeStyle) entry.style;
+    }
 
-    public Point2D.Double[][] getPolys() { return (Point2D.Double[][]) entry.local; }
-    public void setPolys(Point2D.Double[][] pp) { entry.local = pp; entry.needsConversion = true; firePlottableChanged(); }
+    public void setStyle(ShapeStyle style) { 
+        entry.style = style; firePlottableStyleChanged();
+    }
+
+    public Point2D.Double[][] getPolys() {
+        return (Point2D.Double[][]) entry.local;
+    }
+
+    public void setPolys(Point2D.Double[][] pp) { 
+        entry.local = pp;
+        entry.needsConversion = true;
+        firePlottableChanged();
+    }
 
 }

@@ -5,12 +5,9 @@
 
 package org.bm.blaise.scio.algorithm;
 
-import java.util.Arrays;
 import scio.coordinate.utils.PlanarMathUtils;
 import java.awt.geom.Point2D.Double;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -42,15 +39,15 @@ public class PolygonUtilsTest {
     @Test
     public void testInPolygon() {
         System.out.println("inPolygon");
-        assertEquals(false, PolygonUtils.inPolygon(new Double(.5,.5), new Double[]{new Double(0,0), new Double(1,0)}));
-        assertEquals(false, PolygonUtils.inPolygon(new Double(-.1,-.1), new Double[]{new Double(0,0), new Double(1,0), new Double(0,1)}));
-        assertEquals(true, PolygonUtils.inPolygon(new Double(.5,.5), new Double[]{new Double(0,0), new Double(1,0), new Double(0,1)}));
-        assertEquals(false, PolygonUtils.inPolygon(new Double(.51,.51), new Double[]{new Double(0,0), new Double(1,0), new Double(0,1)}));
-        assertEquals(false, PolygonUtils.inPolygon(new Double(1,1), new Double[]{new Double(0,0), new Double(1,0), new Double(0,1)}));
-        assertEquals(true, PolygonUtils.inPolygon(new Double(1,1), new Double[]{new Double(0,0), new Double(1,2), new Double(2,0)}));
+        assertFalse(PolygonUtils.inPolygon(new Double(.5,.5), new Double[]{new Double(0,0), new Double(1,0)}));
+        assertFalse(PolygonUtils.inPolygon(new Double(-.1,-.1), new Double[]{new Double(0,0), new Double(1,0), new Double(0,1)}));
+        assertTrue(PolygonUtils.inPolygon(new Double(.5,.5), new Double[]{new Double(0,0), new Double(1,0), new Double(0,1)}));
+        assertFalse(PolygonUtils.inPolygon(new Double(.51,.51), new Double[]{new Double(0,0), new Double(1,0), new Double(0,1)}));
+        assertFalse(PolygonUtils.inPolygon(new Double(1,1), new Double[]{new Double(0,0), new Double(1,0), new Double(0,1)}));
+        assertTrue(PolygonUtils.inPolygon(new Double(1,1), new Double[]{new Double(0,0), new Double(1,2), new Double(2,0)}));
 
-        assertEquals(true, PolygonUtils.inPolygon(new Double(0,0), new Double[]{new Double(0,0), new Double(1,0), new Double(0,1)}));
-        assertEquals(true, PolygonUtils.inPolygon(new Double(.5,.5), new Double[]{new Double(0,0), new Double(1,0), new Double(1,1), new Double(0,1)}));
+        assertTrue(PolygonUtils.inPolygon(new Double(0,0), new Double[]{new Double(0,0), new Double(1,0), new Double(0,1)}));
+        assertTrue(PolygonUtils.inPolygon(new Double(.5,.5), new Double[]{new Double(0,0), new Double(1,0), new Double(1,1), new Double(0,1)}));
     }
 
 
@@ -79,21 +76,43 @@ public class PolygonUtilsTest {
      * Test of clipPolygon method, of class ClipUtils.
      */
     @Test
-    public void testClipPolygon() {
-        System.out.println("clipPolygon");
+    public void testIntersectionOfConvexPolygons() {
+        System.out.println("intersectionOfConvexPolygons");
 
-        PolygonIntersectionUtils.intersectionOfConvexPolygons(
+        testIntersection(
                 new Double[]{new Double(0,0), new Double(1,0), new Double(1,1), new Double(0,1)},
                 new Double[]{new Double(-.25,.5), new Double(.5,-.25), new Double(.5,1.25) } );
-        PolygonIntersectionUtils.intersectionOfConvexPolygons(
+        testIntersection(
                 new Double[]{ new Double(.5,.5), new Double(-.1,.3), new Double(1.5,.2) },
                 new Double[]{ new Double(0,0), new Double(1,0), new Double(1,1), new Double(0,1) } );        
-        PolygonIntersectionUtils.intersectionOfConvexPolygons(
+        testIntersection(
                 new Double[]{ new Double(.725,.5), PlanarMathUtils.polarPointAtInfinity(Math.PI/2), PlanarMathUtils.polarPointAtInfinity(Math.PI) },
                 new Double[]{ new Double(0,0), new Double(1,0), new Double(1,1), new Double(0,1) } );
-        PolygonIntersectionUtils.intersectionOfConvexPolygons(
+        testIntersection(
                 new Double[]{ new Double(0.7249999999999968, 0.5163775285245027), new Double(0.7212618045637035, 0.5000000000000093), PlanarMathUtils.polarPointAtInfinity(-1.3074618452021987), PlanarMathUtils.polarPointAtInfinity(0.23268863178971982) },
                 new Double[]{ new Double(0,0), new Double(1,0), new Double(1,1), new Double(0,1) } );
+    }
+
+    public void testIntersection(Double[] poly1, Double[] poly2) {
+        System.out.println("Testing intersection of " + print(poly1) + " and " + print(poly2));
+        Double[] result = PolygonIntersectionUtils.intersectionOfConvexPolygons(poly1, poly2);
+        System.out.println("  result = " + print(result));
+    }
+
+    public String print(Double p) {
+        return String.format("(%.3f,%.3f)", p.x, p.y);
+    }
+
+    public String print(Double[] poly) {
+        if (poly == null) return "null";
+        StringBuilder result = new StringBuilder("Polygon[");
+        if (poly.length > 0) {
+            result.append(print(poly[0]));
+            for (int i = 1; i < poly.length; i++)
+                result.append(", ").append(print(poly[i]));
+        }
+        result.append("]");
+        return result.toString();
     }
 
 }

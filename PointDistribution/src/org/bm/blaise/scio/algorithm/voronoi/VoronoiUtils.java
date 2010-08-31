@@ -7,7 +7,6 @@ package org.bm.blaise.scio.algorithm.voronoi;
 
 import java.awt.geom.Point2D;
 import java.util.Comparator;
-import org.bm.blaise.scio.algorithm.Tesselation.Edge;
 import scio.coordinate.utils.BasicMathUtils;
 import scio.coordinate.geometry.PlanarGeometryUtils;
 

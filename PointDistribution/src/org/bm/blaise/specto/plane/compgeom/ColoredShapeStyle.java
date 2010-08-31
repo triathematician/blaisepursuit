@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package main;
+package org.bm.blaise.specto.plane.compgeom;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
