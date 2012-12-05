@@ -1,0 +1,63 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>PursuitSim Help File</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+  <body>
+      <h1>Help for PursuitSim</h1>
+
+      <h2>Graphical User Interface</h2>
+
+      <h2>Simulation Components</h2>
+      
+      <hr>
+      <h3>Agents</h3>
+      <div style="float:left"><img src="icons/agent.png" alt=""></div>
+      <p>
+          Agents are the basic unit in a pursuit simulation. They have individualized
+          behaviors and can be customized in several ways. Their basic parameters are:
+      </p>
+      <ul>
+          <li><b>Initial Position</b>: Location at which the agent starts.</li>
+          <li><b>Top Speed</b>: The maximum speed achievable by the agent.</li>
+          <li><b>Max Acceleration</b>: The maximum rate at which the agent's speed can increase.</li>
+          <li><b>Turning Radius</b>: The minimum radius at which the agent can turn. If 0, the agent can turn in any direction at any time.
+              Otherwise, the agent will be unable to travel in a tighter circle than one of this radius.</li>
+          <li><b>Communications Radius</b>: This is the maximum range at which the agent can send communications.</li>
+      </ul>
+      <p>
+          Agents also support more complex attributes and behaviors.
+      </p>
+      <p>
+          An agent's path is determined by a single <i>main task</i>, which includes information
+          about the position (and velocity) of some sort of target. This may represent an actual
+          target, or it might represent a "phantom" target, e.g. if an evader is trying to escape
+          from two pursuers. The agent will move as close to the target as possible, subject
+          to the restrictions imposed by its <i>max acceleration</i> and <i>turning radius</i>.
+      </p>
+
+      <hr>
+      <h3>Teams</h3>
+      <div style="float:left"><img src="icons/team.png" alt=""></div>
+      Teams are collections of agents...
+
+      <hr>
+      <h3>Parametric & Random Paths</h3>
+      <div style="float:left"><img src="icons/path-agent.png" alt=""><img src="icons/random-agent.png" alt=""></div>
+      Paths are...
+
+      <hr>
+      <h3>Obstacles</h3>
+      <div style="float:left"><img src="icons/obstacle.png" alt=""></div>
+      Obstacles are...
+
+      <h2>Algorithms/Addons</h2>
+
+      <h3>
+  </body>
+</html>
